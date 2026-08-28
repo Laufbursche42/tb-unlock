@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v1';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v2';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -111,9 +111,11 @@ function protoFor(key) {
 // Classify an advertised device name to a family, 1:1 with ScanFragment (belegt).
 function classifyByName(name) {
   if (!name) return null;
-  const n = String(name).toLowerCase();
-  if (n.startsWith('zyd') || n.startsWith('hw_')) return 'zyd';
-  if (String(name) === 'Scooter') return 'legacy';
+  const n = String(name).trim().toLowerCase();
+  if (n === 'scooter') return 'legacy';
+  // Real Trittbrett ZYD units advertise varied names, e.g. "ePFHilde", not just "zyd"/"hw_".
+  if (n.startsWith('zyd') || n.startsWith('hw_') || n.startsWith('epf')) return 'zyd';
+  if (/(hilde|fritz|paul|sultan|kalle|emma)/.test(n)) return 'zyd';
   return null;
 }
 const AUTO_PROTO = { id: 'auto', baseId: null, name: 'auto', family: null, prefixes: [], transport: 'zyd', speed: false };
@@ -289,7 +291,7 @@ async function pickAndConnect() {
     // Web Bluetooth namePrefix filters are case-sensitive, while the app matches "zyd"/"hw_"
     // case-insensitively, so cover the common casings and also filter by the service UUIDs, so a
     // scooter shows up regardless of the exact advertised name.
-    const zydPfx = ['zyd', 'ZYD', 'Zyd', 'hw_', 'HW_', 'Hw_'].map(p => ({ namePrefix: p }));
+    const zydPfx = ['zyd', 'ZYD', 'Zyd', 'hw_', 'HW_', 'Hw_', 'ePF', 'EPF', 'epf', 'ePf'].map(p => ({ namePrefix: p }));
     const svcFilters = [{ services: [TRANSPORTS.zyd.service] }, { services: [TRANSPORTS.legacy.service] }];
     if (autoDetect) {
       log('auto detect: scanning Trittbrett scooters (name zyd../hw_.. any case, "Scooter", or by service). If nothing shows: close the official Trittbrett app first (a scooter pairs with one device at a time), then use "Diagnostics: all devices".');
@@ -368,6 +370,10 @@ async function connectGatt(dev) {
     server = await device.gatt.connect();
     const svc = await resolveService(server);
     if (!svc) { try { device.gatt.disconnect(); } catch (e) {} setStatus('no-service'); log('no known service found. Wrong model? Please report.', 'log-err'); return; }
+    // If the advertised name gave no family (e.g. "ePFHilde"), take it from the service that was found.
+    if (activeProto.family !== 'LEGACY' && activeProto.family !== 'ZYD') {
+      applyDetectedProto(usedTransport === TRANSPORTS.legacy ? 'legacy' : 'zyd', 'classified from the ' + usedTransport.name + ' service (name carried no model).');
+    }
     writeChar = await svc.getCharacteristic(usedTransport.write).catch(() => null);
     notifyChar = await svc.getCharacteristic(usedTransport.notify).catch(() => null);
     if (!writeChar || !notifyChar) { try { device.gatt.disconnect(); } catch (e) {} setStatus('no-char'); log('write/notify characteristic missing on ' + usedTransport.name, 'log-err'); return; }
