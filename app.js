@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v10';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v11';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -591,7 +591,7 @@ function cmdRegister(reg, v, label) { zydSendParam(encodeReg(reg, v), label + ' 
 const SETTINGS = [
   { g: 'light', id: 'headlight', type: 'switch', base: 'headlight' },
   { g: 'light', id: 'ambient', type: 'switch', base: 'ambient' },
-  { g: 'ride', id: 'gear', type: 'select', base: 'gear', options: [['0', '1'], ['1', '2']] },
+  { g: 'ride', id: 'gear', type: 'select', base: 'gear', options: [['0', 'D'], ['1', 'T']] },
   { g: 'ride', id: 'zeroStart', type: 'switch', base: 'boot', invert: true },
   { g: 'ride', id: 'cruiseOff', type: 'button', special: 'cruiseOff', btn: 'btnCruiseOff' },
   { g: 'ride', id: 'unit', type: 'switch', base: 'imperial' },
