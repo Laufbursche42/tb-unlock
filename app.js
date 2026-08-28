@@ -286,12 +286,18 @@ async function pickAndConnect() {
   if (!navigator.bluetooth) { log('Web Bluetooth not available. Use Bluefy (iOS) or Chrome/Edge.', 'log-err'); return; }
   try {
     let filters;
+    // Web Bluetooth namePrefix filters are case-sensitive, while the app matches "zyd"/"hw_"
+    // case-insensitively, so cover the common casings and also filter by the service UUIDs, so a
+    // scooter shows up regardless of the exact advertised name.
+    const zydPfx = ['zyd', 'ZYD', 'Zyd', 'hw_', 'HW_', 'Hw_'].map(p => ({ namePrefix: p }));
+    const svcFilters = [{ services: [TRANSPORTS.zyd.service] }, { services: [TRANSPORTS.legacy.service] }];
     if (autoDetect) {
-      log('auto detect: scanning Trittbrett scooters (name zyd.. / hw_.. / Scooter) ...');
-      filters = [{ namePrefix: 'zyd' }, { namePrefix: 'ZYD' }, { namePrefix: 'hw_' }, { namePrefix: 'HW_' }, { name: 'Scooter' }];
+      log('auto detect: scanning Trittbrett scooters (name zyd../hw_.. any case, "Scooter", or by service). If nothing shows: close the official Trittbrett app first (a scooter pairs with one device at a time), then use "Diagnostics: all devices".');
+      filters = zydPfx.concat([{ name: 'Scooter' }], svcFilters);
     } else {
-      log('scanning for ' + activeProto.name + ' (' + activeProto.prefixes.join('/') + ') ...');
-      filters = activeProto.prefixes.map(p => (p === 'Scooter' ? { name: 'Scooter' } : { namePrefix: p }));
+      log('scanning for ' + activeProto.name + ' ...');
+      const pfx = (activeProto.family === 'LEGACY') ? [{ name: 'Scooter' }] : zydPfx;
+      filters = pfx.concat(svcFilters);
     }
     device = await navigator.bluetooth.requestDevice({ filters, optionalServices: ALL_SERVICES });
     log('selected: ' + (device.name || '(no name)') + ' [' + device.id + ']');
