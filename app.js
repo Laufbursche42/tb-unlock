@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v12';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v13';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -593,13 +593,18 @@ function cmdVLock(lock) {
   if (activeProto.family === 'LEGACY') { transmit(ff55Frame(0x17, [lock ? 0x02 : 0x01]), (lock ? 'lock' : 'unlock') + ' 0x17', 'ff:' + 0x17); return; }
   cmdBaseParam('lock', lock ? 1 : 0, (lock ? 'lock' : 'unlock') + ' via monitor');
 }
+// Send a raw ASCII AT command on the AT channel (F2F1). Used for name and the sound commands.
+function zydSendAt(cmd) {
+  if (activeProto.family !== 'ZYD' || !atWriteChar) { log('this needs the AT channel (newer models).', 'log-err'); return; }
+  atWriteChar.writeValue(new TextEncoder().encode(cmd)).then(() => log('TX  ' + cmd + ' (AT F2F1)', 'log-tx')).catch(e => log('AT failed: ' + e, 'log-err'));
+}
 function cmdSetName(name) {
   const s = (name || '').trim().slice(0, 16);
   if (!s) { log('name is empty.', 'log-err'); return; }
-  if (activeProto.family !== 'ZYD' || !atWriteChar) { log('setting the name needs the AT channel (newer models).', 'log-err'); return; }
-  const cmd = 'AT+NAME[' + s + ']';
-  atWriteChar.writeValue(new TextEncoder().encode(cmd)).then(() => log('TX  ' + cmd + ' (AT F2F1)', 'log-tx')).catch(e => log('set name failed: ' + e, 'log-err'));
+  zydSendAt('AT+NAME[' + s + ']');
 }
+// Sound commands (belegt: AT+MP3=start, MP31=shutdown, MP32=horn, MP34=alarm; type is 2-digit).
+function cmdSound(atCode, type) { const n = (type < 10 ? '0' : '') + type; zydSendAt('AT+' + atCode + '[' + n + ']'); }
 // Register write (adv-parameter, CMD_RW_PARAMETER 0x17). Encoding per parameter, belegt from
 // BleCore$setAdvParams: opv -> round(v*opv); int -> round(v); realmax -> round(v)*floor(real/max);
 // index -> the raw index. All 16-bit big-endian at the register address.
@@ -625,6 +630,7 @@ const SETTINGS = [
   { g: 'ride', id: 'limit1', type: 'number', base: 'm1', min: 1, max: 60, step: 1, unit: 'km/h' },
   { g: 'ride', id: 'limit2', type: 'number', base: 'm2', min: 1, max: 60, step: 1, unit: 'km/h' },
   { g: 'ride', id: 'limit3', type: 'number', base: 'm3', min: 1, max: 60, step: 1, unit: 'km/h' },
+  { g: 'ride', id: 'limitCruise', type: 'number', base: 'limitCruise', min: 0, max: 60, step: 1, unit: 'km/h' },
   { g: 'ride', id: 'throttleAccel', type: 'number', reg: { addr: 0x09, enc: 'realmax', factor: 3000 }, min: 0, max: 10, step: 1 },
   { g: 'ride', id: 'throttleBrake', type: 'number', reg: { addr: 0x0a, enc: 'realmax', factor: 3000 }, min: 0, max: 10, step: 1 },
   { g: 'system', id: 'cruiseTime', type: 'number', reg: { addr: 0x33, enc: 'int' }, min: 2, max: 30, step: 1, unit: 's' },
@@ -639,14 +645,19 @@ const SETTINGS = [
   { g: 'motor', id: 'dischargeCur', type: 'number', reg: { addr: 0x0b, enc: 'opv', opv: 64 }, min: 0.5, max: 20, step: 0.5, unit: 'A', risky: true },
   { g: 'motor', id: 'brakeCur', type: 'number', reg: { addr: 0x0c, enc: 'opv', opv: 64 }, min: 0.5, max: 30, step: 0.5, unit: 'A', risky: true },
   { g: 'motor', id: 'voltProt', type: 'number', reg: { addr: 0x13, enc: 'opv', opv: 10 }, min: 18, max: 44, step: 0.5, unit: 'V', risky: true },
+  { g: 'sound', id: 'startSound', type: 'number', special: 'sound', at: 'MP3', min: 1, max: 30, step: 1 },
+  { g: 'sound', id: 'shutdownSound', type: 'number', special: 'sound', at: 'MP31', min: 1, max: 30, step: 1 },
+  { g: 'sound', id: 'hornSound', type: 'number', special: 'sound', at: 'MP32', min: 1, max: 30, step: 1 },
+  { g: 'sound', id: 'alarmSound', type: 'number', special: 'sound', at: 'MP34', min: 1, max: 30, step: 1 },
 ];
-const SETTING_GROUPS = ['light', 'ride', 'system', 'motor'];
+const SETTING_GROUPS = ['light', 'ride', 'system', 'motor', 'sound'];
 
 function sendSetting(s) {
   let label = t('set_' + s.id) || s.id;
   if (s.special === 'vlock') { cmdVLock($('set-' + s.id).value === '1'); return; }
   if (s.special === 'name') { cmdSetName($('set-' + s.id).value); return; }
   if (s.special === 'cruiseOff') { cmdBaseParam('cruise', 0, 'cruise off'); return; }
+  if (s.special === 'sound') { const v = parseInt($('set-' + s.id).value, 10); if (isNaN(v)) return; cmdSound(s.at, v); return; }
   if (s.type === 'switch') { const on = $('set-' + s.id).value === '1'; const bit = s.invert ? (on ? 0 : 1) : (on ? 1 : 0); cmdBaseParam(s.base, bit, label + ' ' + (on ? 'on' : 'off')); return; }
   if (s.base) { const v = parseInt($('set-' + s.id).value, 10); if (isNaN(v)) return; cmdBaseParam(s.base, v, label + ' ' + v); return; }
   if (s.reg) { const raw = $('set-' + s.id).value; const v = (s.reg.enc === 'index') ? parseInt(raw, 10) : parseFloat(raw); if (isNaN(v)) return; cmdRegister(s.reg, v, label + ' ' + raw); }
