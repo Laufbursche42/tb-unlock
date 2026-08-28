@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v7';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v8';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -570,7 +570,6 @@ const SETTINGS = [
   { g: 'light', id: 'headlight', type: 'switch', base: 'headlight' },
   { g: 'light', id: 'ambient', type: 'switch', base: 'ambient' },
   { g: 'ride', id: 'gear', type: 'select', base: 'gear', options: [['0', '1'], ['1', '2']] },
-  { g: 'ride', id: 'cruise', type: 'switch', base: 'cruise' },
   { g: 'ride', id: 'zeroStart', type: 'switch', base: 'boot', invert: true },
   { g: 'ride', id: 'unit', type: 'switch', base: 'imperial' },
   { g: 'ride', id: 'limit1', type: 'number', base: 'm1', min: 1, max: 60, step: 1, unit: 'km/h' },
