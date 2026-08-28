@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v8';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v9';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -401,7 +401,7 @@ function afterConnect() {
   if (activeProto.family === 'ZYD') {
     const pin = ($('pin-in') && $('pin-in').value.trim()) || '';
     if (pin && atWriteChar) { atWriteChar.writeValue(new TextEncoder().encode('AT+PWD[' + pin + ']')).then(() => log('TX  AT+PWD[' + pin + '] (AT F2F1)', 'log-tx')).catch(e => log('AT+PWD failed: ' + e, 'log-err')); }
-    keepTimer = setInterval(() => { if (connected) writeFrame(zydTranFrame(0x00)).catch(() => {}); }, 500);
+    startZydKeep();
     transmit(zydTranFrame(0x00), 'sendTran (nudge)');
     transmit(zydReadFrame(0x07, 0, 4), 'ESC-info request 0x07', 'zyd:esc');
   } else {
@@ -411,6 +411,27 @@ function afterConnect() {
   maybeRunDeepAction();
 }
 function stopKeep() { if (keepTimer) { clearInterval(keepTimer); keepTimer = null; } }
+function startZydKeep() { stopKeep(); keepTimer = setInterval(() => { if (connected) writeFrame(zydTranFrame(0x00)).catch(() => {}); }, 500); }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+// Register writes (CMD_RW_PARAMETER 0x17) need the app's exact sequence: pause the keepalive, wait
+// 150 ms, send one sendTran nudge, wait 30 ms, then the write. Belegt from BleCore$setAdvParams (the
+// controller only acknowledges the parameter and beeps when it is not interleaved with keepalive frames).
+async function zydSendParam(frame, label, ackKey) {
+  if (!connected || !writeChar) { log('not connected', 'log-err'); return; }
+  stopKeep();
+  try {
+    await sleep(150);
+    const nudge = zydTranFrame(0x00);
+    log('TX  ' + bytesToHex(nudge) + '   (param-write nudge sendTran)', 'log-tx');
+    await writeFrame(nudge);
+    await sleep(30);
+    log('TX  ' + bytesToHex(frame) + '   (' + label + ')', 'log-tx');
+    if (ackKey) armAck(ackKey, label);
+    await writeFrame(frame);
+    log('sent.', 'log-ok');
+  } catch (e) { log('send failed: ' + e, 'log-err'); }
+  finally { if (connected) startZydKeep(); }
+}
 
 function onDisconnected(ev) {
   if (ev && ev.target && ev.target !== device) return;
@@ -524,7 +545,7 @@ function cmdSetMaxSpeed(kmh, persist) {
   if (!activeProto.speed) { log('this model has no BLE speed command.', 'log-err'); return; }
   if (persist !== false) { try { localStorage.setItem(LS_SPEED, String(kmh)); } catch (e) {} }
   const frame = zydSpeedFrame(kmh);
-  transmit(frame, 'max speed ' + kmh + ' km/h -> register 0x20', 'zyd:speed');
+  zydSendParam(frame, 'max speed ' + kmh + ' km/h -> register 0x20', 'zyd:speed');
   log('  note: an echo means the controller accepted the write. Whether it actually rides the value shows only in the live telemetry.', 'log-ok');
 }
 function cmdGear(d2) {
@@ -562,7 +583,7 @@ function encodeReg(reg, v) {
   n &= 0xFFFF;
   return zydRwParamFrame(reg.addr, [(n >> 8) & 0xFF, n & 0xFF]);
 }
-function cmdRegister(reg, v, label) { transmit(encodeReg(reg, v), label + ' -> register 0x' + reg.addr.toString(16), 'zyd:reg' + reg.addr); }
+function cmdRegister(reg, v, label) { zydSendParam(encodeReg(reg, v), label + ' -> register 0x' + reg.addr.toString(16), 'zyd:reg' + reg.addr); }
 
 // Every setting the ZYD protocol exposes, grouped. base -> a bit/field in the monitor frame;
 // reg -> a CMD_RW_PARAMETER register; special -> a hand-written command. risky -> confirm first.
