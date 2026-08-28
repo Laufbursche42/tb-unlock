@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v9';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v10';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -186,7 +186,7 @@ function openHelp(key) {
 function closeHelp() { const dlg = $('help'); if (!dlg) return; if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
 function clearLog() { logLines.length = 0; const el = $('log'); if (el) el.textContent = ''; logDiagnosticHeader(); log('log cleared'); }
 function setTile(id, val) { const el = $(id); if (el) el.textContent = (val == null ? '-' : val); }
-function resetTiles() { ['t-speed', 't-batt', 't-volt', 't-cur', 't-temp', 't-lock'].forEach(id => setTile(id, null)); }
+function resetTiles() { ['t-speed', 't-batt', 't-volt', 't-cur', 't-temp', 't-lock', 't-cruise'].forEach(id => setTile(id, null)); }
 function statusLabel(s) {
   const map = { disconnected: 'stDisconnected', connecting: 'stConnecting', linking: 'stLinking', connected: 'stConnected', 'no-service': 'stNoService', 'no-char': 'stNoChar' };
   return t(map[s] || 'stDisconnected') || s;
@@ -490,6 +490,7 @@ function decodeZydMonitor(b) {
     setTile('t-cur', cur.toFixed(1) + ' A');
     setTile('t-temp', escT + '/' + motT + ' C');
     setTile('t-lock', t(lock ? 'valLocked' : 'valUnlocked'));
+    setTile('t-cruise', t(bp.cruise ? 'optOn' : 'optOff'));
     log('  monitorA: speed=' + speed.toFixed(1) + 'km/h batt=' + batt + '% ' + volt.toFixed(1) + 'V ' + cur.toFixed(1) + 'A escT=' + escT + ' motT=' + motT + ' gear=' + b[4] + ' lock=' + lock + ' trip=' + (rdU16BE(b, 16) / 10).toFixed(1) + 'km', 'log-ok');
   } else if (sub === 0x01 && b.length >= 16) {
     const fault = rdU16BE(b, 8);
@@ -592,6 +593,7 @@ const SETTINGS = [
   { g: 'light', id: 'ambient', type: 'switch', base: 'ambient' },
   { g: 'ride', id: 'gear', type: 'select', base: 'gear', options: [['0', '1'], ['1', '2']] },
   { g: 'ride', id: 'zeroStart', type: 'switch', base: 'boot', invert: true },
+  { g: 'ride', id: 'cruiseOff', type: 'button', special: 'cruiseOff', btn: 'btnCruiseOff' },
   { g: 'ride', id: 'unit', type: 'switch', base: 'imperial' },
   { g: 'ride', id: 'limit1', type: 'number', base: 'm1', min: 1, max: 60, step: 1, unit: 'km/h' },
   { g: 'ride', id: 'limit2', type: 'number', base: 'm2', min: 1, max: 60, step: 1, unit: 'km/h' },
@@ -617,6 +619,7 @@ function sendSetting(s) {
   let label = t('set_' + s.id) || s.id;
   if (s.special === 'vlock') { cmdVLock($('set-' + s.id).value === '1'); return; }
   if (s.special === 'name') { cmdSetName($('set-' + s.id).value); return; }
+  if (s.special === 'cruiseOff') { cmdBaseParam('cruise', 0, 'cruise off'); return; }
   if (s.type === 'switch') { const on = $('set-' + s.id).value === '1'; const bit = s.invert ? (on ? 0 : 1) : (on ? 1 : 0); cmdBaseParam(s.base, bit, label + ' ' + (on ? 'on' : 'off')); return; }
   if (s.base) { const v = parseInt($('set-' + s.id).value, 10); if (isNaN(v)) return; cmdBaseParam(s.base, v, label + ' ' + v); return; }
   if (s.reg) { const raw = $('set-' + s.id).value; const v = (s.reg.enc === 'index') ? parseInt(raw, 10) : parseFloat(raw); if (isNaN(v)) return; cmdRegister(s.reg, v, label + ' ' + raw); }
@@ -641,6 +644,12 @@ function renderSettings() {
       help.addEventListener('click', () => openSettingHelp(s.id));
       lab.appendChild(span); lab.appendChild(help);
       row.appendChild(lab);
+      if (s.type === 'button') {   // label + a single action button (e.g. "Tempomat ausschalten")
+        row.appendChild(document.createElement('span'));
+        const abtn = document.createElement('button'); abtn.id = 'setbtn-' + s.id; abtn.setAttribute('data-t', s.btn); abtn.textContent = t(s.btn); abtn.disabled = true;
+        abtn.addEventListener('click', () => trySendSetting(s));
+        row.appendChild(abtn); host.appendChild(row); return;
+      }
       let ctrl;
       if (s.type === 'switch') { ctrl = document.createElement('select'); [['1', t('optOn')], ['0', t('optOff')]].forEach(([v, txt]) => { const o = document.createElement('option'); o.value = v; o.textContent = (s.id === 'unit') ? (v === '1' ? 'mph' : 'km/h') : txt; ctrl.appendChild(o); }); }
       else if (s.type === 'select') { ctrl = document.createElement('select'); s.options.forEach(([v, txt]) => { const o = document.createElement('option'); o.value = v; o.textContent = /^(unlock|lock)$/.test(txt) ? t(txt === 'lock' ? 'btnLock' : 'btnUnlock') : txt; ctrl.appendChild(o); }); }
