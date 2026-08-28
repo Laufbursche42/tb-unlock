@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v3';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v4';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -287,22 +287,12 @@ function applyDetectedProto(family, note) {
 async function pickAndConnect() {
   if (!navigator.bluetooth) { log('Web Bluetooth not available. Use Bluefy (iOS) or Chrome/Edge.', 'log-err'); return; }
   try {
-    // Real Trittbrett units advertise unpredictable names (e.g. "ePFHilde", not "zyd"/"hw_"), and
-    // Web Bluetooth name filters are case-sensitive, so a name filter is unreliable. Auto detect
-    // therefore shows ALL devices (like the diagnostics) and classifies afterwards from the name and
-    // the GATT service. A manual model pick keeps a filtered chooser for a tidier list.
-    let options;
-    if (autoDetect) {
-      log('auto detect: showing all Bluetooth devices - pick your scooter (e.g. "ePFHilde" or "Scooter"). Close the official Trittbrett app first, otherwise it holds the connection and the scooter stays invisible.');
-      options = { acceptAllDevices: true, optionalServices: ALL_SERVICES };
-    } else {
-      log('scanning for ' + activeProto.name + ' ...');
-      const zydPfx = ['zyd', 'ZYD', 'Zyd', 'hw_', 'HW_', 'Hw_', 'ePF', 'EPF', 'epf', 'ePf'].map(p => ({ namePrefix: p }));
-      const svcFilters = [{ services: [TRANSPORTS.zyd.service] }, { services: [TRANSPORTS.legacy.service] }];
-      const pfx = (activeProto.family === 'LEGACY') ? [{ name: 'Scooter' }] : zydPfx;
-      options = { filters: pfx.concat(svcFilters), optionalServices: ALL_SERVICES };
-    }
-    device = await navigator.bluetooth.requestDevice(options);
+    // Trittbrett units advertise unpredictable, changing names (e.g. "ePFHilde" or "Hilde 135..."),
+    // so a name filter only hides the scooter. Always show ALL devices; the user knows which one is
+    // their scooter. The GATT service found on connect (F1F0 = newer, 7777 = legacy) is the real
+    // validation and decides the protocol - a device with neither is rejected as "not a Trittbrett".
+    log('showing all Bluetooth devices - pick your scooter (e.g. "ePFHilde" or "Scooter"). Close the official Trittbrett app first, otherwise it holds the connection and the scooter stays invisible.');
+    device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ALL_SERVICES });
     log('selected: ' + (device.name || '(no name)') + ' [' + device.id + ']');
     const fam = classifyByName(device.name);
     if (autoDetect) {
@@ -370,7 +360,7 @@ async function connectGatt(dev) {
     connected = false;
     server = await device.gatt.connect();
     const svc = await resolveService(server);
-    if (!svc) { try { device.gatt.disconnect(); } catch (e) {} setStatus('no-service'); log('no known service found. Wrong model? Please report.', 'log-err'); return; }
+    if (!svc) { try { device.gatt.disconnect(); } catch (e) {} setStatus('no-service'); log('this device has no Trittbrett service (F1F0 for newer models or 7777 for the legacy "Scooter") - it is not a Trittbrett scooter. Pick your scooter from the list.', 'log-err'); return; }
     // If the advertised name gave no family (e.g. "ePFHilde"), take it from the service that was found.
     if (activeProto.family !== 'LEGACY' && activeProto.family !== 'ZYD') {
       applyDetectedProto(usedTransport === TRANSPORTS.legacy ? 'legacy' : 'zyd', 'classified from the ' + usedTransport.name + ' service (name carried no model).');
