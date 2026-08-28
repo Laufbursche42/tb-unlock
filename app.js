@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v11';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v12';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -133,6 +133,7 @@ let keepTimer = null;   // ZYD 500 ms sendTran / Legacy 500 ms confirm keep-aliv
 // Tracked base-params state (ZYD). One monitor frame carries them all, so a single change must
 // resend the others unchanged. Filled from the incoming 0xAB frames (A: switches+gear, B: limits).
 let bp = { gear: 0, headlight: 0, ambient: 0, cruise: 0, boot: 0, imperial: 0, lock: 0, limitCruise: 3, m1: 6, m2: 10, m3: 20 };
+let escInfoBuf = new Uint8Array(80);   // ESC info strings (model/hardware/boot/firmware/uniquecode), streamed in chunks
 
 // --------------------------- UI helpers ---------------------------
 function $(id) { return document.getElementById(id); }
@@ -186,7 +187,7 @@ function openHelp(key) {
 function closeHelp() { const dlg = $('help'); if (!dlg) return; if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
 function clearLog() { logLines.length = 0; const el = $('log'); if (el) el.textContent = ''; logDiagnosticHeader(); log('log cleared'); }
 function setTile(id, val) { const el = $(id); if (el) el.textContent = (val == null ? '-' : val); }
-function resetTiles() { ['t-speed', 't-batt', 't-volt', 't-cur', 't-temp', 't-lock', 't-cruise'].forEach(id => setTile(id, null)); }
+function resetTiles() { ['t-speed', 't-batt', 't-volt', 't-cur', 't-power', 't-temp', 't-battemp', 't-trip', 't-total', 't-cap', 't-lock', 't-cruise', 't-fault', 't-fw', 't-disp'].forEach(id => setTile(id, null)); }
 function statusLabel(s) {
   const map = { disconnected: 'stDisconnected', connecting: 'stConnecting', linking: 'stLinking', connected: 'stConnected', 'no-service': 'stNoService', 'no-char': 'stNoChar' };
   return t(map[s] || 'stDisconnected') || s;
@@ -467,9 +468,25 @@ function handleFrame(b) {
   if (activeProto.family === 'LEGACY') { handleLegacy(b); return; }
   const head = b[0];
   if (head === 0xAB) { decodeZydMonitor(b); return; }
-  if (head === 0x01) { resolveAck('zyd:esc', bytesToHex(b)); log('  ZYD info/cmd frame (head 01, cmd 0x' + (b[1] || 0).toString(16) + ').'); return; }
+  if (head === 0x01) {
+    const cmd = b[1];
+    if (cmd === 0x07 && b.length >= 6) {   // ESC info: 16-byte ASCII strings, streamed in 8-byte chunks
+      const off = rdU16BE(b, 2);
+      for (let i = 0; i < 8 && (5 + i) < b.length && (off + i) < escInfoBuf.length; i++) escInfoBuf[off + i] = b[5 + i];
+      if (off + 8 >= 64) {   // firmware region (48..63) is complete -> render
+        const model = asciiClean(escInfoBuf.subarray(0, 16)), hw = asciiClean(escInfoBuf.subarray(16, 32));
+        const boot = asciiClean(escInfoBuf.subarray(32, 48)), fw = asciiClean(escInfoBuf.subarray(48, 64));
+        setTile('t-fw', fw || '-');
+        log('  ESC info: model=' + model + ' hardware=' + hw + ' boot=' + boot + ' firmware=' + fw, 'log-ok');
+      }
+      resolveAck('zyd:esc', bytesToHex(b));
+      return;
+    }
+    resolveAck('zyd:esc', bytesToHex(b)); log('  ZYD info/cmd frame (head 01, cmd 0x' + (cmd || 0).toString(16) + ').'); return;
+  }
   log('  note: unrecognized ZYD head 0x' + head.toString(16) + ' (raw hex above).');
 }
+function asciiClean(bytes) { let s = ''; for (const c of bytes) if (c >= 0x20 && c <= 0x7e) s += String.fromCharCode(c); return s.trim(); }
 function decodeZydMonitor(b) {
   const sub = b[1];
   if (sub === 0x00 && b.length >= 23) {
@@ -484,11 +501,17 @@ function decodeZydMonitor(b) {
     bp.gear = b[4] & 0x03; bp.lock = lock;
     bp.headlight = (status >> 2) & 1; bp.boot = (status >> 5) & 1; bp.imperial = (status >> 6) & 1;
     bp.cruise = (status >> 9) & 1; bp.ambient = (status >> 15) & 1;
+    const trip = rdU16BE(b, 16) / 10;
+    const total = (((b[18] << 16) | (b[19] << 8) | b[20]) >>> 0) / 10;
+    const power = volt * cur;
     setTile('t-speed', speed.toFixed(1) + ' km/h');
     setTile('t-batt', batt + ' %');
     setTile('t-volt', volt.toFixed(1) + ' V');
     setTile('t-cur', cur.toFixed(1) + ' A');
+    setTile('t-power', power.toFixed(0) + ' W');
     setTile('t-temp', escT + '/' + motT + ' C');
+    setTile('t-trip', trip.toFixed(1) + ' km');
+    setTile('t-total', total.toFixed(1) + ' km');
     setTile('t-lock', t(lock ? 'valLocked' : 'valUnlocked'));
     setTile('t-cruise', t(bp.cruise ? 'optOn' : 'optOff'));
     log('  monitorA: speed=' + speed.toFixed(1) + 'km/h batt=' + batt + '% ' + volt.toFixed(1) + 'V ' + cur.toFixed(1) + 'A escT=' + escT + ' motT=' + motT + ' gear=' + b[4] + ' lock=' + lock + ' trip=' + (rdU16BE(b, 16) / 10).toFixed(1) + 'km', 'log-ok');
@@ -496,6 +519,10 @@ function decodeZydMonitor(b) {
     const fault = rdU16BE(b, 8);
     const faults = faultList(fault);
     bp.limitCruise = b[3]; bp.m1 = b[4]; bp.m2 = b[5]; bp.m3 = b[6];
+    setTile('t-battemp', rdS8(b[7]) + ' C');
+    setTile('t-cap', rdU16BE(b, 14) + '/' + rdU16BE(b, 12));
+    setTile('t-fault', faults.length ? faults.join(',') : t('valNone'));
+    if (b.length >= 23) setTile('t-disp', 'V' + b[20] + '.' + b[21] + '.' + b[22]);
     log('  monitorB: limits=' + b[4] + '/' + b[5] + '/' + b[6] + 'km/h cruiseLimit=' + b[3] + ' battTemp=' + rdS8(b[7]) + ' fault=' + (faults.length ? faults.join(',') : 'none') + ' cap=' + rdU16BE(b, 14) + '/' + rdU16BE(b, 12), 'log-ok');
   } else { log('  monitor frame sub=' + sub + ' len=' + b.length + ' (not decoded).'); }
 }
