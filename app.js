@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v6';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v7';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -567,9 +567,9 @@ function cmdRegister(reg, v, label) { transmit(encodeReg(reg, v), label + ' -> r
 // Every setting the ZYD protocol exposes, grouped. base -> a bit/field in the monitor frame;
 // reg -> a CMD_RW_PARAMETER register; special -> a hand-written command. risky -> confirm first.
 const SETTINGS = [
-  { g: 'light', id: 'headlight', type: 'switch', base: 'headlight', invert: true },
+  { g: 'light', id: 'headlight', type: 'switch', base: 'headlight' },
   { g: 'light', id: 'ambient', type: 'switch', base: 'ambient' },
-  { g: 'ride', id: 'gear', type: 'select', base: 'gear', options: [['0', '1'], ['1', '2'], ['2', '3']] },
+  { g: 'ride', id: 'gear', type: 'select', base: 'gear', options: [['0', '1'], ['1', '2']] },
   { g: 'ride', id: 'cruise', type: 'switch', base: 'cruise' },
   { g: 'ride', id: 'zeroStart', type: 'switch', base: 'boot', invert: true },
   { g: 'ride', id: 'unit', type: 'switch', base: 'imperial' },
