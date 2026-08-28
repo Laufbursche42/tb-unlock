@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v4';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v5';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -113,10 +113,8 @@ function classifyByName(name) {
   if (!name) return null;
   const n = String(name).trim().toLowerCase();
   if (n === 'scooter') return 'legacy';
-  // Real Trittbrett ZYD units advertise varied names, e.g. "ePFHilde", not just "zyd"/"hw_".
-  if (n.startsWith('zyd') || n.startsWith('hw_') || n.startsWith('epf')) return 'zyd';
-  if (/(hilde|fritz|paul|sultan|kalle|emma)/.test(n)) return 'zyd';
-  return null;
+  if (n.startsWith('zyd') || n.startsWith('hw_')) return 'zyd';   // belegt aus ScanFragment (case-insensitive)
+  return null;   // unknown name -> the GATT service found on connect decides the family
 }
 const AUTO_PROTO = { id: 'auto', baseId: null, name: 'auto', family: null, prefixes: [], transport: 'zyd', speed: false };
 const DEFAULT_MODEL = 'auto';
