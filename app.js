@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v2';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v3';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -287,21 +287,22 @@ function applyDetectedProto(family, note) {
 async function pickAndConnect() {
   if (!navigator.bluetooth) { log('Web Bluetooth not available. Use Bluefy (iOS) or Chrome/Edge.', 'log-err'); return; }
   try {
-    let filters;
-    // Web Bluetooth namePrefix filters are case-sensitive, while the app matches "zyd"/"hw_"
-    // case-insensitively, so cover the common casings and also filter by the service UUIDs, so a
-    // scooter shows up regardless of the exact advertised name.
-    const zydPfx = ['zyd', 'ZYD', 'Zyd', 'hw_', 'HW_', 'Hw_', 'ePF', 'EPF', 'epf', 'ePf'].map(p => ({ namePrefix: p }));
-    const svcFilters = [{ services: [TRANSPORTS.zyd.service] }, { services: [TRANSPORTS.legacy.service] }];
+    // Real Trittbrett units advertise unpredictable names (e.g. "ePFHilde", not "zyd"/"hw_"), and
+    // Web Bluetooth name filters are case-sensitive, so a name filter is unreliable. Auto detect
+    // therefore shows ALL devices (like the diagnostics) and classifies afterwards from the name and
+    // the GATT service. A manual model pick keeps a filtered chooser for a tidier list.
+    let options;
     if (autoDetect) {
-      log('auto detect: scanning Trittbrett scooters (name zyd../hw_.. any case, "Scooter", or by service). If nothing shows: close the official Trittbrett app first (a scooter pairs with one device at a time), then use "Diagnostics: all devices".');
-      filters = zydPfx.concat([{ name: 'Scooter' }], svcFilters);
+      log('auto detect: showing all Bluetooth devices - pick your scooter (e.g. "ePFHilde" or "Scooter"). Close the official Trittbrett app first, otherwise it holds the connection and the scooter stays invisible.');
+      options = { acceptAllDevices: true, optionalServices: ALL_SERVICES };
     } else {
       log('scanning for ' + activeProto.name + ' ...');
+      const zydPfx = ['zyd', 'ZYD', 'Zyd', 'hw_', 'HW_', 'Hw_', 'ePF', 'EPF', 'epf', 'ePf'].map(p => ({ namePrefix: p }));
+      const svcFilters = [{ services: [TRANSPORTS.zyd.service] }, { services: [TRANSPORTS.legacy.service] }];
       const pfx = (activeProto.family === 'LEGACY') ? [{ name: 'Scooter' }] : zydPfx;
-      filters = pfx.concat(svcFilters);
+      options = { filters: pfx.concat(svcFilters), optionalServices: ALL_SERVICES };
     }
-    device = await navigator.bluetooth.requestDevice({ filters, optionalServices: ALL_SERVICES });
+    device = await navigator.bluetooth.requestDevice(options);
     log('selected: ' + (device.name || '(no name)') + ' [' + device.id + ']');
     const fam = classifyByName(device.name);
     if (autoDetect) {
