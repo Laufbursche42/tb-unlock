@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v5';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v6';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -567,11 +567,11 @@ function cmdRegister(reg, v, label) { transmit(encodeReg(reg, v), label + ' -> r
 // Every setting the ZYD protocol exposes, grouped. base -> a bit/field in the monitor frame;
 // reg -> a CMD_RW_PARAMETER register; special -> a hand-written command. risky -> confirm first.
 const SETTINGS = [
-  { g: 'light', id: 'headlight', type: 'switch', base: 'headlight' },
+  { g: 'light', id: 'headlight', type: 'switch', base: 'headlight', invert: true },
   { g: 'light', id: 'ambient', type: 'switch', base: 'ambient' },
   { g: 'ride', id: 'gear', type: 'select', base: 'gear', options: [['0', '1'], ['1', '2'], ['2', '3']] },
   { g: 'ride', id: 'cruise', type: 'switch', base: 'cruise' },
-  { g: 'ride', id: 'zeroStart', type: 'switch', base: 'boot' },
+  { g: 'ride', id: 'zeroStart', type: 'switch', base: 'boot', invert: true },
   { g: 'ride', id: 'unit', type: 'switch', base: 'imperial' },
   { g: 'ride', id: 'limit1', type: 'number', base: 'm1', min: 1, max: 60, step: 1, unit: 'km/h' },
   { g: 'ride', id: 'limit2', type: 'number', base: 'm2', min: 1, max: 60, step: 1, unit: 'km/h' },
@@ -597,7 +597,7 @@ function sendSetting(s) {
   let label = t('set_' + s.id) || s.id;
   if (s.special === 'vlock') { cmdVLock($('set-' + s.id).value === '1'); return; }
   if (s.special === 'name') { cmdSetName($('set-' + s.id).value); return; }
-  if (s.type === 'switch') { const on = $('set-' + s.id).value === '1'; cmdBaseParam(s.base, on ? 1 : 0, label + ' ' + (on ? 'on' : 'off')); return; }
+  if (s.type === 'switch') { const on = $('set-' + s.id).value === '1'; const bit = s.invert ? (on ? 0 : 1) : (on ? 1 : 0); cmdBaseParam(s.base, bit, label + ' ' + (on ? 'on' : 'off')); return; }
   if (s.base) { const v = parseInt($('set-' + s.id).value, 10); if (isNaN(v)) return; cmdBaseParam(s.base, v, label + ' ' + v); return; }
   if (s.reg) { const raw = $('set-' + s.id).value; const v = (s.reg.enc === 'index') ? parseInt(raw, 10) : parseFloat(raw); if (isNaN(v)) return; cmdRegister(s.reg, v, label + ' ' + raw); }
 }
