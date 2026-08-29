@@ -152,7 +152,9 @@ window.I18N = {
     scSlow: "Sperren: eKFV-Wert",
     shortcutIos: "iOS (Bluefy): lege dir eine Verknüpfung auf diese Adresse an.",
     shortcutAndroid: "Android (Chrome): eine Verknüpfung auf dem Startbildschirm auf diese Adresse.",
-    shortcutNote: "Beim Öffnen über eine solche Verknüpfung verbindet sich die Seite mit dem zuletzt genutzten Scooter und setzt die Geschwindigkeit: Sperren auf den eKFV-Wert, Entsperren auf den offenen Wert. Der Scooter muss an sein und in Reichweite. Nur für die neueren Modelle (FRITZ, PAUL, SULTAN, HILDE, KALLE v2, EMMA v2), die die Geschwindigkeit über Bluetooth setzen können.",
+    shortcutNote: "Beim Öffnen über eine solche Verknüpfung versucht die Seite, sich still mit dem zuletzt genutzten Scooter zu verbinden und setzt dann die Geschwindigkeit: Sperren auf den eKFV-Wert, Entsperren auf den offenen Wert. Klappt der stille Verbindungsaufbau nicht (bei Chrome oft der Fall), erscheint oben ein Hinweis und ein Tipp auf Verbinden führt den Wunsch aus. Der Scooter muss an sein und in Reichweite. Nur für die neueren Modelle (FRITZ, PAUL, SULTAN, HILDE, KALLE v2, EMMA v2), die die Geschwindigkeit über Bluetooth setzen können.",
+    shortcutPendingFast: "Verknüpfung Entsperren aktiv: tippe auf Verbinden, dann wird der offene Wert gesetzt.",
+    shortcutPendingSlow: "Verknüpfung Sperren aktiv: tippe auf Verbinden, dann wird der eKFV-Wert gesetzt.",
 
     s6Title: "Protokoll-Log",
     btnCopyLog: "Log kopieren",
@@ -333,7 +335,9 @@ window.I18N = {
     scSlow: "Lock: eKFV value",
     shortcutIos: "iOS (Bluefy): add a shortcut pointing at this address.",
     shortcutAndroid: "Android (Chrome): a home-screen shortcut pointing at this address.",
-    shortcutNote: "Opened through such a shortcut, the page reconnects to the last scooter and sets the speed: lock to the eKFV value, unlock to the open value. The scooter has to be on and in range. Only for the newer models (FRITZ, PAUL, SULTAN, HILDE, KALLE v2, EMMA v2) that can set the speed over Bluetooth.",
+    shortcutNote: "Opened through such a shortcut, the page tries to reconnect silently to the last scooter and then sets the speed: lock to the eKFV value, unlock to the open value. If the silent reconnect does not work (common on Chrome), a hint appears at the top and one tap on Connect runs the request. The scooter has to be on and in range. Only for the newer models (FRITZ, PAUL, SULTAN, HILDE, KALLE v2, EMMA v2) that can set the speed over Bluetooth.",
+    shortcutPendingFast: "Unlock shortcut active: tap Connect and the open value will be set.",
+    shortcutPendingSlow: "Lock shortcut active: tap Connect and the eKFV value will be set.",
 
     s6Title: "Protocol log",
     btnCopyLog: "Copy log",

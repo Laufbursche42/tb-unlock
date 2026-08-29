@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v13';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v14';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -396,12 +396,17 @@ async function connectGatt(dev) {
 //   ZYD: optional AT+PWD, then a 500 ms sendTran keep-alive that drives the 0xAB monitoring, plus one
 //        ESC-info request for the firmware version.
 //   Legacy: a 500 ms FF 55 01 00 55 confirmation keep-alive (belegt: onServicesDiscovered timer).
-function afterConnect() {
+async function afterConnect() {
   setStatus('connected');
   stopKeep();
   if (activeProto.family === 'ZYD') {
     const pin = ($('pin-in') && $('pin-in').value.trim()) || '';
-    if (pin && atWriteChar) { atWriteChar.writeValue(new TextEncoder().encode('AT+PWD[' + pin + ']')).then(() => log('TX  AT+PWD[' + pin + '] (AT F2F1)', 'log-tx')).catch(e => log('AT+PWD failed: ' + e, 'log-err')); }
+    // Wait for the PIN to be accepted BEFORE anything else. A shortcut fires the speed write straight
+    // after connect, and an unauthenticated write is dropped silently by the controller.
+    if (pin && atWriteChar) {
+      try { await atWriteChar.writeValue(new TextEncoder().encode('AT+PWD[' + pin + ']')); log('TX  AT+PWD[' + pin + '] (AT F2F1)', 'log-tx'); }
+      catch (e) { log('AT+PWD failed: ' + e, 'log-err'); }
+    }
     startZydKeep();
     transmit(zydTranFrame(0x00), 'sendTran (nudge)');
     transmit(zydReadFrame(0x07, 0, 4), 'ESC-info request 0x07', 'zyd:esc');
@@ -745,28 +750,44 @@ function parseDeepLink() {
     if (a === 'slow' || a === 'fast') { pendingDeepAction = a; log('shortcut: ' + a + ' requested'); }
   } catch (e) {}
 }
-function maybeRunDeepAction() {
+async function maybeRunDeepAction() {
   if (!pendingDeepAction || !connected) return;
   const a = pendingDeepAction; pendingDeepAction = null;
+  showDeepHint(false);
   if (!activeProto.speed) { log('shortcut ' + a + ' ignored: this model has no BLE speed command.', 'log-err'); return; }
+  // Let the session settle: PIN accepted above, keepalive/monitor now flowing. A write fired too early
+  // is silently dropped by the controller, which is why the shortcut looked like it did nothing.
+  log('shortcut: waiting for the session to settle before writing...');
+  await sleep(1500);
+  if (!connected) { log('shortcut ' + a + ' aborted: connection dropped before the write.', 'log-err'); return; }
   if (a === 'fast') { const v = openSpeedValue(); log('shortcut: unlock -> ' + v + ' km/h'); cmdSetMaxSpeed(v, true); speedUnlocked = true; }
   else { const v = ekfvSpeedValue(); log('shortcut: lock -> ' + v + ' km/h (eKFV)'); cmdSetMaxSpeed(v, false); speedUnlocked = false; }
   updateToggleButton();
 }
+// Show/hide the "tap Connect to finish the shortcut" banner. pendingDeepAction stays set, so the
+// normal Connect button picks it up and runs the action once connected.
+function showDeepHint(on) {
+  const el = $('devinfo'); if (!el) return;
+  if (on && pendingDeepAction) { el.textContent = t(pendingDeepAction === 'fast' ? 'shortcutPendingFast' : 'shortcutPendingSlow'); el.classList.add('warn'); }
+  else { el.classList.remove('warn'); }
+}
 async function tryAutoReconnect() {
-  if (!navigator.bluetooth || !navigator.bluetooth.getDevices) return;
+  // Silent reconnect (no chooser) needs navigator.bluetooth.getDevices(). Bluefy supports it; Chrome
+  // needs the "web-bluetooth-new-permissions-backend" flag, so it often returns nothing. When it does
+  // not connect, we keep the pending action and prompt for one tap on Connect instead of failing quiet.
+  if (!navigator.bluetooth || !navigator.bluetooth.getDevices) { showDeepHint(true); log('shortcut: silent reconnect not available here - tap Connect once to run it.'); return; }
   try {
     const devs = await navigator.bluetooth.getDevices();
-    if (!devs || !devs.length) return;
+    if (!devs || !devs.length) { showDeepHint(true); log('shortcut: no remembered scooter for silent reconnect - tap Connect once to run it.'); return; }
     const savedId = localStorage.getItem(LS_DEVICE);
     let dev = (savedId && devs.find(d => d.id === savedId)) || null;
     if (!dev && autoDetect) dev = devs.find(d => classifyByName(d.name)) || null;
-    if (!dev) return;
+    if (!dev) { showDeepHint(true); log('shortcut: remembered device not matched - tap Connect once to run it.'); return; }
     const fam = classifyByName(dev.name);
     if (fam) applyDetectedProto(fam, 'auto-reconnect detected ' + (fam === 'legacy' ? 'Legacy' : 'ZYD') + ' from "' + dev.name + '"');
     log('auto-reconnect: ' + (dev.name || dev.id));
     await connectGatt(dev);
-  } catch (e) { setStatus('disconnected'); log('auto-reconnect skipped: ' + e); }
+  } catch (e) { setStatus('disconnected'); showDeepHint(true); log('auto-reconnect skipped: ' + e + ' - tap Connect once to run the shortcut.'); }
 }
 
 // --------------------------- language ---------------------------
