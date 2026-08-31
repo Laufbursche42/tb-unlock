@@ -42,8 +42,7 @@ lock and unlock.
 
 The page picks the protocol from the advertised BLE name, exactly like the manufacturer app
 (`com.planm.trittbrett`): a name starting with `zyd` or `hw_` is a ZYD model, the name `Scooter` is the
-legacy path. See [PROTOCOL.md](PROTOCOL.md) for the byte-level details, all belegt from static analysis
-of the app.
+legacy path.
 
 > **Unlocking the app is not the same as unlocking the scooter.** Writing a higher value into register
 > `0x20` only means the app sends it. Whether the setting takes effect is decided by the firmware on the
