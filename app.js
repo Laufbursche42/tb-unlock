@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v14';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v15';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -46,8 +46,13 @@ function zydRwParamFrame(addr, valueBytes) {
 }
 // global speed limit: register 0x20, value km/h*10 as uint16 BE (opv 10, app max 60)
 function zydSpeedFrame(kmh) { const v = Math.round(kmh * 10) & 0xFFFF; return zydRwParamFrame(0x20, [(v >>> 8) & 0xFF, v & 0xFF]); }
-// control frame (no CRC): A5 cmd ~cmd 00 00 00 00 5A
+// control frame (no CRC): A5 cmd ~cmd 00 00 00 00 5A. cmd 0x00 enters "UF mode" (register/config access,
+// display bypassed, belegt "Keep UF Mode" log in BleCore.sendTran); cmd 0xFF leaves it again (belegt
+// "Stop UF Mode" log in BleCore.sendStopTran). UF mode must never be the resting state of a connection.
 function zydTranFrame(cmd) { return new Uint8Array([0xA5, cmd & 0xFF, (~cmd) & 0xFF, 0, 0, 0, 0, 0x5A]); }
+// idle heartbeat while NOT touching registers (no CRC): A5 02 FD 5A, belegt "Keep Monitor Mode" log in
+// BleCore.sendKeep. This is the frame that keeps the display in charge of the throttle.
+function zydKeepFrame() { return new Uint8Array([0xA5, 0x02, 0xFD, 0x5A]); }
 // status byte: bit0-1 gear, bit2 headlight, bit3 ambient, bit4 cruise, bit5 boot, bit6 imperial, bit7 lock
 function zydStatusByte(o) { o = o || {}; return ((o.gear || 0) & 3) | ((o.headlight ? 1 : 0) << 2) | ((o.ambient ? 1 : 0) << 3) | ((o.cruise ? 1 : 0) << 4) | ((o.boot ? 1 : 0) << 5) | ((o.imperial ? 1 : 0) << 6) | ((o.lock ? 1 : 0) << 7); }
 
@@ -68,7 +73,9 @@ let PROTO_OK = false;
     eq(ff55Frame(0x1F, [0x03]), 'FF 55 1F 01 03 77'),   // gear D2
     eq(ff55Frame(0x17, [0x01]), 'FF 55 17 01 01 6D'),   // unlock
     eq(ff55Frame(0x01, []), 'FF 55 01 00 55'),          // confirm
-    eq(zydTranFrame(0x00), 'A5 00 FF 00 00 00 00 5A'),  // tran
+    eq(zydTranFrame(0x00), 'A5 00 FF 00 00 00 00 5A'),  // tran (enter UF mode)
+    eq(zydTranFrame(0xFF), 'A5 FF 00 00 00 00 00 5A'),  // stop tran (leave UF mode)
+    eq(zydKeepFrame(), 'A5 02 FD 5A'),                  // keep (idle heartbeat, monitor mode)
     (function () { const f = zydSpeedFrame(20); return f[0] === 0x01 && f[1] === 0x17 && f[2] === 0x00 && f[3] === 0x20 && f[f.length - 4] === 0x00 && f[f.length - 3] === 0xC8; })(),
     crc16Modbus([0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39]) === 0x4B37,   // MODBUS "123456789"
   ];
@@ -393,13 +400,24 @@ async function connectGatt(dev) {
 }
 
 // Post-connect handshake, per family.
-//   ZYD: optional AT+PWD, then a 500 ms sendTran keep-alive that drives the 0xAB monitoring, plus one
-//        ESC-info request for the firmware version.
+//   ZYD: belegt from BleCore$listener$1$onConnectStatusChanged$1 (the coroutine every real connection
+//        runs first): 5x sendStopTran (A5 FF 00 00 00 00 00 5A, 50 ms apart) to force the controller
+//        OUT of UF/register mode regardless of what a previous session left it in, then 3x sendKeep
+//        (A5 02 FD 5A, 50 ms apart) to enter normal monitor mode, where the display stays in charge of
+//        the throttle and streams the 0xAB telemetry on its own. Only AFTER that: optional AT+PWD, the
+//        idle sendKeep heartbeat, and one ESC-info request for the firmware version.
+//        A build before v15 used a continuous sendTran ("Keep UF Mode") loop as the idle heartbeat and
+//        never sent sendStopTran at all, so the scooter could stay latched in UF mode for the whole
+//        connection: display bypassed, throttle unresponsive, only cleared by reconnecting with the
+//        vendor app (which does run this exact stop sequence). Fixed in v15, belegt against BleCore.
 //   Legacy: a 500 ms FF 55 01 00 55 confirmation keep-alive (belegt: onServicesDiscovered timer).
 async function afterConnect() {
   setStatus('connected');
   stopKeep();
   if (activeProto.family === 'ZYD') {
+    for (let i = 0; i < 5; i++) { await writeFrame(zydTranFrame(0xFF)).catch(() => {}); await sleep(50); }
+    for (let i = 0; i < 3; i++) { await writeFrame(zydKeepFrame()).catch(() => {}); await sleep(50); }
+    log('  UF mode released (5x stop) plus monitor mode entered (3x keep), belegt connect sequence.', 'log-ok');
     const pin = ($('pin-in') && $('pin-in').value.trim()) || '';
     // Wait for the PIN to be accepted BEFORE anything else. A shortcut fires the speed write straight
     // after connect, and an unauthenticated write is dropped silently by the controller.
@@ -408,7 +426,6 @@ async function afterConnect() {
       catch (e) { log('AT+PWD failed: ' + e, 'log-err'); }
     }
     startZydKeep();
-    transmit(zydTranFrame(0x00), 'sendTran (nudge)');
     transmit(zydReadFrame(0x07, 0, 4), 'ESC-info request 0x07', 'zyd:esc');
   } else {
     keepTimer = setInterval(() => { if (connected) writeFrame(ff55Frame(0x01, [])).catch(() => {}); }, 500);
@@ -417,11 +434,14 @@ async function afterConnect() {
   maybeRunDeepAction();
 }
 function stopKeep() { if (keepTimer) { clearInterval(keepTimer); keepTimer = null; } }
-function startZydKeep() { stopKeep(); keepTimer = setInterval(() => { if (connected) writeFrame(zydTranFrame(0x00)).catch(() => {}); }, 500); }
+// Idle heartbeat: sendKeep ("Keep Monitor Mode"), never sendTran. Looping sendTran here was the v14 bug.
+function startZydKeep() { stopKeep(); keepTimer = setInterval(() => { if (connected) writeFrame(zydKeepFrame()).catch(() => {}); }, 500); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 // Register writes (CMD_RW_PARAMETER 0x17) need the app's exact sequence: pause the keepalive, wait
 // 150 ms, send one sendTran nudge, wait 30 ms, then the write. Belegt from BleCore$setAdvParams (the
 // controller only acknowledges the parameter and beeps when it is not interleaved with keepalive frames).
+// After the write, explicitly release UF mode again (sendStopTran) before resuming the idle heartbeat,
+// mirroring BleCore.stopGetAdvParams -- a single write must not leave the scooter latched in UF mode.
 async function zydSendParam(frame, label, ackKey) {
   if (!connected || !writeChar) { log('not connected', 'log-err'); return; }
   stopKeep();
@@ -435,6 +455,9 @@ async function zydSendParam(frame, label, ackKey) {
     if (ackKey) armAck(ackKey, label);
     await writeFrame(frame);
     log('sent.', 'log-ok');
+    await sleep(30);
+    await writeFrame(zydTranFrame(0xFF)).catch(() => {});
+    log('  UF mode released (sendStopTran).', 'log-ok');
   } catch (e) { log('send failed: ' + e, 'log-err'); }
   finally { if (connected) startZydKeep(); }
 }
