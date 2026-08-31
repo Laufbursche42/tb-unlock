@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v16';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v17';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -655,9 +655,6 @@ const SETTINGS = [
   { g: 'ride', id: 'zeroStart', type: 'switch', base: 'boot', invert: true },
   { g: 'ride', id: 'cruiseOff', type: 'button', special: 'cruiseOff', btn: 'btnCruiseOff' },
   { g: 'ride', id: 'unit', type: 'switch', base: 'imperial' },
-  { g: 'ride', id: 'limit1', type: 'number', base: 'm1', min: 1, max: 60, step: 1, unit: 'km/h' },
-  { g: 'ride', id: 'limit2', type: 'number', base: 'm2', min: 1, max: 60, step: 1, unit: 'km/h' },
-  { g: 'ride', id: 'limit3', type: 'number', base: 'm3', min: 1, max: 60, step: 1, unit: 'km/h' },
   { g: 'ride', id: 'limitCruise', type: 'number', base: 'limitCruise', min: 0, max: 60, step: 1, unit: 'km/h' },
   { g: 'ride', id: 'throttleAccel', type: 'number', reg: { addr: 0x09, enc: 'realmax', factor: 3000 }, min: 0, max: 10, step: 1 },
   { g: 'ride', id: 'throttleBrake', type: 'number', reg: { addr: 0x0a, enc: 'realmax', factor: 3000 }, min: 0, max: 10, step: 1 },
