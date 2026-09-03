@@ -27,6 +27,10 @@ Then open the printed address in a browser that supports Web Bluetooth.
 **Guide: [Deutsch](GUIDE.de.md) | [English](GUIDE.en.md)** covers every step, from the first connect to
 lock and unlock.
 
+**On Android?** There is a native Android app that does the same over Bluetooth, without a browser:
+**[tb-lb-edition](https://github.com/Laufbursche42/tb-lb-edition)**. It sidesteps the Web Bluetooth
+quirks - some phones, for example Samsung with Auto Blocker on, block the browser connection.
+
 ## What it does
 
 - **Live telemetry** from the scooter: speed, battery, voltage, current, controller and motor
