@@ -383,7 +383,9 @@ async function connectGatt(dev) {
     notifyChar.removeEventListener('characteristicvaluechanged', onCharacteristicValue);
     notifyChar.addEventListener('characteristicvaluechanged', onCharacteristicValue);
     connected = true;
-    speedUnlocked = false;
+    // speedUnlocked is no longer forced here - the first monitorB frame derives the real state
+    // from the reported m1/m2/m3 limits (see decodeZydMonitor), so a reconnect to an already
+    // unlocked scooter shows "Lock", not a stale "Unlock" that would send another unlock write.
     setControlsEnabled(true);
     const info = $('devinfo');
     if (info) info.textContent = t('devPrefix') + ' ' + (device.name || '(no name)') + '  -  ' + t(activeProto.family === 'LEGACY' ? 'genOlder' : 'genNewer') + ', ' + t('devConnected');
@@ -547,6 +549,10 @@ function decodeZydMonitor(b) {
     const fault = rdU16BE(b, 8);
     const faults = faultList(fault);
     bp.limitCruise = b[3]; bp.m1 = b[4]; bp.m2 = b[5]; bp.m3 = b[6];
+    // Derive the real lock state from the reported limits instead of trusting a local flag: clearly
+    // above the eKFV value means the scooter is actually riding unlocked right now.
+    speedUnlocked = Math.max(bp.m1, bp.m2, bp.m3) > (ekfvSpeedValue() + 2);
+    updateToggleButton();
     setTile('t-battemp', rdS8(b[7]) + ' C');
     setTile('t-cap', rdU16BE(b, 14) + '/' + rdU16BE(b, 12));
     setTile('t-fault', faults.length ? faults.join(',') : t('valNone'));
