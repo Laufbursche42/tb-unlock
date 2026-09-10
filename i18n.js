@@ -15,7 +15,7 @@ window.I18N = {
     themeToDark: "Auf dunkle Darstellung umschalten",
 
     s1Title: "So fängst du an",
-    sub: "Live über Web Bluetooth mit deinem Trittbrett-E-Scooter reden. Läuft in Bluefy (iOS) oder Chrome (Android/Desktop). Nichts verlässt dein Gerät.",
+    sub: "Live über Web Bluetooth mit deinem Trittbrett-E-Scooter reden. Diese Seite ist für das iPhone gedacht (App Bluefy); Android-Nutzer nehmen besser unsere Android-App <a href=\"https://github.com/Laufbursche42/tb-lb-edition\" target=\"_blank\" rel=\"noopener\">tb-lb-edition</a>. Nichts verlässt dein Gerät.",
     startHintGuide: "Neu hier? In der <a href=\"GUIDE.de.md\" data-doc=\"GUIDE\" data-t=\"footGuide\">Anleitung</a> steht jeder Schritt.",
     expWarn: "Machbarkeitsstudie: Diese Seite zeigt, was das Bluetooth-Protokoll eines Trittbrett-E-Scooters technisch möglich macht, sie ist kein fertiges Produkt. Alle Einstellungen sind aus der Hersteller-App belegt, aber nicht am Gerät verifiziert - ob eine Einstellung wirkt, entscheidet die Firmware des Scooters. Fehlerfreier Betrieb wird nicht versprochen, es gibt keinerlei Gewährleistung. Alles, was du hier tust, tust du auf eigenes Risiko. <a href=\"#\" data-open-disclaimer>Haftungsausschluss lesen</a>.",
     ownDevice: "Nur am eigenen Fahrzeug auf privatem Gelände. Das Anheben der Höchstgeschwindigkeit hebt die Drossel auf, die ABE erlischt und der Betrieb auf öffentlichen Wegen ist dann nicht erlaubt.",
@@ -192,7 +192,7 @@ window.I18N = {
     themeToDark: "Switch to dark theme",
 
     s1Title: "Getting started",
-    sub: "Talk to your Trittbrett scooter live over Web Bluetooth. Runs in Bluefy (iOS) or Chrome (Android/desktop). Nothing leaves your device.",
+    sub: "Talk to your Trittbrett scooter live over Web Bluetooth. This page is meant for the iPhone (Bluefy app); Android users are better off with our Android app <a href=\"https://github.com/Laufbursche42/tb-lb-edition\" target=\"_blank\" rel=\"noopener\">tb-lb-edition</a>. Nothing leaves your device.",
     startHintGuide: "New here? Every step is in the <a href=\"GUIDE.en.md\" data-doc=\"GUIDE\" data-t=\"footGuide\">guide</a>.",
     expWarn: "Feasibility study: this page shows what the Bluetooth protocol of a Trittbrett scooter makes possible, it is not a finished product. Every setting is belegt from the manufacturer app but not verified on a device - whether a setting takes effect is decided by the scooter's firmware. Error-free operation is not promised and there is no warranty of any kind. Whatever you do here, you do at your own risk. <a href=\"#\" data-open-disclaimer>Read the disclaimer</a>.",
     ownDevice: "Only on your own vehicle on private ground. Raising the top speed removes the throttle limit, the road approval lapses and operating it on public roads is then not allowed.",
