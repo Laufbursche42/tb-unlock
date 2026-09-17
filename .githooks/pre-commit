@@ -61,6 +61,38 @@ if [ -n "$dash_blocked" ]; then
 fi
 
 # =================================================================
+# PHASE 0B - auto-bump the cache-buster (BUILD in app.js, ?v= in index.html)
+# =================================================================
+# app.js is shipped with no build step, so a stale browser cache is the only thing
+# standing between a tester and the fix they were just told is live. Bump on every
+# app.js change that doesn't already carry its own manual bump.
+if grep -qz '^app\.js$' "$STAGED_LIST" 2>/dev/null; then
+  OLD_BUILD=$(git show HEAD:app.js 2>/dev/null | sed -n "s/^const BUILD = 'v\([0-9][0-9]*\)'.*/\1/p")
+  STAGED_BUILD=$(git show :app.js 2>/dev/null | sed -n "s/^const BUILD = 'v\([0-9][0-9]*\)'.*/\1/p")
+  if [ -n "$OLD_BUILD" ] && [ "$STAGED_BUILD" = "$OLD_BUILD" ]; then
+    NEW_BUILD=$((OLD_BUILD + 1))
+    if git diff --quiet -- app.js 2>/dev/null; then
+      perl -i -pe "s/const BUILD = 'v[0-9]+'/const BUILD = 'v$NEW_BUILD'/" app.js
+      git add app.js
+      echo "  auto-bumped BUILD -> v$NEW_BUILD in app.js"
+    else
+      echo "BLOCK: app.js needs a cache-buster bump, but it also has UNSTAGED changes -> stage the whole file first."
+      RC=1
+    fi
+    if [ -f index.html ]; then
+      if git diff --quiet -- index.html 2>/dev/null; then
+        perl -i -pe "s/app\.js\?v=[0-9]+/app.js?v=$NEW_BUILD/" index.html
+        git add index.html
+        echo "  auto-bumped ?v= -> $NEW_BUILD in index.html"
+      else
+        echo "BLOCK: index.html needs its cache-buster synced, but it also has UNSTAGED changes -> stage the whole file first."
+        RC=1
+      fi
+    fi
+  fi
+fi
+
+# =================================================================
 # PHASE A - syntax checks
 # =================================================================
 # Node snippet: extract every inline <script> WITHOUT src= from an HTML file.
