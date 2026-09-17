@@ -35,6 +35,9 @@ The **Live values** card shows speed, battery, voltage, current, controller and 
 the lock state. The raw messages are also logged as hex. Where a model does not provide a field, a dash
 is shown.
 
+That lock is the scooter's own vehicle lock (like an immobiliser) - display only, no button here. It has
+nothing to do with the speed limit in step 5.
+
 ## 5. Set the speed (ZYD models only)
 
 The **Speed** card has two values:

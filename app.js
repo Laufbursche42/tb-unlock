@@ -139,7 +139,7 @@ let modelChosen = false;
 let keepTimer = null;   // ZYD 500 ms sendTran / Legacy 500 ms confirm keep-alive
 // Tracked base-params state (ZYD). One monitor frame carries them all, so a single change must
 // resend the others unchanged. Filled from the incoming 0xAB frames (A: switches+gear, B: limits).
-let bp = { gear: 0, headlight: 0, ambient: 0, cruise: 0, boot: 0, imperial: 0, lock: 0, limitCruise: 3, m1: 6, m2: 10, m3: 20 };
+let bp = { gear: 0, headlight: 0, ambient: 0, cruise: 0, boot: 0, imperial: 0, lock: 0, limitCruise: 3, m1: 6, m2: 10, m3: 20, thousandUnitsEnable: 0 };
 let escInfoBuf = new Uint8Array(80);   // ESC info strings (model/hardware/boot/firmware/uniquecode), streamed in chunks
 
 // --------------------------- UI helpers ---------------------------
@@ -383,9 +383,7 @@ async function connectGatt(dev) {
     notifyChar.removeEventListener('characteristicvaluechanged', onCharacteristicValue);
     notifyChar.addEventListener('characteristicvaluechanged', onCharacteristicValue);
     connected = true;
-    // speedUnlocked is no longer forced here - the first monitorB frame derives the real state
-    // from the reported m1/m2/m3 limits (see decodeZydMonitor), so a reconnect to an already
-    // unlocked scooter shows "Lock", not a stale "Unlock" that would send another unlock write.
+    speedUnlocked = false;   // no live readback for register 0x20 exists, see README
     setControlsEnabled(true);
     const info = $('devinfo');
     if (info) info.textContent = t('devPrefix') + ' ' + (device.name || '(no name)') + '  -  ' + t(activeProto.family === 'LEGACY' ? 'genOlder' : 'genNewer') + ', ' + t('devConnected');
@@ -521,7 +519,7 @@ function decodeZydMonitor(b) {
   const sub = b[1];
   if (sub === 0x00 && b.length >= 23) {
     const status = rdU16BE(b, 21);
-    const speed = Math.max(rdU16BE(b, 6), rdU16BE(b, 8)) / 1000;
+    const speed = Math.max(rdU16BE(b, 6), rdU16BE(b, 8)) / 1000 * (bp.thousandUnitsEnable ? 100 : 1);
     const volt = rdU16BE(b, 10) / 10;
     const cur = rdS16BE(b, 12) / 64;
     const batt = b[5];
@@ -549,10 +547,7 @@ function decodeZydMonitor(b) {
     const fault = rdU16BE(b, 8);
     const faults = faultList(fault);
     bp.limitCruise = b[3]; bp.m1 = b[4]; bp.m2 = b[5]; bp.m3 = b[6];
-    // Derive the real lock state from the reported limits instead of trusting a local flag: clearly
-    // above the eKFV value means the scooter is actually riding unlocked right now.
-    speedUnlocked = Math.max(bp.m1, bp.m2, bp.m3) > (ekfvSpeedValue() + 2);
-    updateToggleButton();
+    bp.thousandUnitsEnable = (rdU16BE(b, 10) >> 12) & 1;
     setTile('t-battemp', rdS8(b[7]) + ' C');
     setTile('t-cap', rdU16BE(b, 14) + '/' + rdU16BE(b, 12));
     setTile('t-fault', faults.length ? faults.join(',') : t('valNone'));

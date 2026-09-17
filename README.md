@@ -37,7 +37,9 @@ quirks - some phones, for example Samsung with Auto Blocker on, block the browse
   temperature and the lock state, decoded from the ZYD monitor frames.
 - **Set the speed limit** on the ZYD models (FRITZ, PAUL, SULTAN, HILDE, KALLE v2, EMMA v2): the
   Unlock/Lock button writes the global limit register `0x20` (value km/h times 10). The values are
-  editable; the app's own ceiling is 60 km/h.
+  editable; the app's own ceiling is 60 km/h. That register has no readback on the wire, so the
+  button's own state is local memory only, reset on every fresh connect - not the same thing as the
+  lock-state tile below, which is the scooter's own separate vehicle lock (immobiliser).
 - **Gear switch** on the legacy models (KALLE v1 / EMMA v1, Bluetooth name "Scooter"), which have no
   BLE speed command.
 - **Immobilizer, cruise control and Bluetooth name** where the model supports them.

@@ -36,6 +36,9 @@ Die Karte **Live-Werte** zeigt Geschwindigkeit, Akku, Spannung, Strom, die Tempe
 und Motor sowie die Sperre. Die rohen Meldungen stehen zusätzlich als Hex im Protokoll-Log. Liefert dein
 Modell ein Feld nicht, steht dort ein Strich.
 
+Diese Sperre ist die Fahrzeug-Sperre des Scooters selbst (wie eine Wegfahrsperre), nur eine Anzeige
+ohne eigenen Knopf hier. Mit dem Tempolimit in Schritt 5 hat sie nichts zu tun.
+
 ## 5. Geschwindigkeit setzen (nur ZYD-Modelle)
 
 In der Karte **Geschwindigkeit** stehen zwei Werte:
