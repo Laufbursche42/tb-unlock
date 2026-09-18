@@ -12,7 +12,7 @@
 
 'use strict';
 
-const BUILD = 'v19';   // logged on load so a tester's log reveals which deployed build is running
+const BUILD = 'v20';   // logged on load so a tester's log reveals which deployed build is running
 
 // --------------------------- helpers ---------------------------
 
@@ -501,11 +501,12 @@ function handleFrame(b) {
     if (cmd === 0x07 && b.length >= 6) {   // ESC info: 16-byte ASCII strings, streamed in 8-byte chunks
       const off = rdU16BE(b, 2);
       for (let i = 0; i < 8 && (5 + i) < b.length && (off + i) < escInfoBuf.length; i++) escInfoBuf[off + i] = b[5 + i];
-      if (off + 8 >= 64) {   // firmware region (48..63) is complete -> render
+      if (off + 8 >= 80) {   // uniquecode region (64..79) is complete -> render
         const model = asciiClean(escInfoBuf.subarray(0, 16)), hw = asciiClean(escInfoBuf.subarray(16, 32));
         const boot = asciiClean(escInfoBuf.subarray(32, 48)), fw = asciiClean(escInfoBuf.subarray(48, 64));
+        const uniq = asciiClean(escInfoBuf.subarray(64, 80));
         setTile('t-fw', fw || '-');
-        log('  ESC info: model=' + model + ' hardware=' + hw + ' boot=' + boot + ' firmware=' + fw, 'log-ok');
+        log('  ESC info: model=' + model + ' hardware=' + hw + ' boot=' + boot + ' firmware=' + fw + ' uniquecode=' + uniq, 'log-ok');
       }
       resolveAck('zyd:esc', bytesToHex(b));
       return;
@@ -525,6 +526,7 @@ function decodeZydMonitor(b) {
     const batt = b[5];
     const escT = rdS8(b[14]), motT = rdS8(b[15]);
     const lock = (status >> 11) & 1;
+    const blinkR = (status >> 13) & 1, blinkL = (status >> 14) & 1;
     // keep the tracked base-params in step so a single-setting write resends the others unchanged
     bp.gear = b[4] & 0x03; bp.lock = lock;
     bp.headlight = (status >> 2) & 1; bp.boot = (status >> 5) & 1; bp.imperial = (status >> 6) & 1;
@@ -542,7 +544,8 @@ function decodeZydMonitor(b) {
     setTile('t-total', total.toFixed(1) + ' km');
     setTile('t-lock', t(lock ? 'valLocked' : 'valUnlocked'));
     setTile('t-cruise', t(bp.cruise ? 'optOn' : 'optOff'));
-    log('  monitorA: speed=' + speed.toFixed(1) + 'km/h batt=' + batt + '% ' + volt.toFixed(1) + 'V ' + cur.toFixed(1) + 'A escT=' + escT + ' motT=' + motT + ' gear=' + b[4] + ' lock=' + lock + ' trip=' + (rdU16BE(b, 16) / 10).toFixed(1) + 'km', 'log-ok');
+    setTile('t-blink', t(blinkL && blinkR ? 'valBlinkBoth' : blinkL ? 'valBlinkLeft' : blinkR ? 'valBlinkRight' : 'valBlinkOff'));
+    log('  monitorA: speed=' + speed.toFixed(1) + 'km/h batt=' + batt + '% ' + volt.toFixed(1) + 'V ' + cur.toFixed(1) + 'A escT=' + escT + ' motT=' + motT + ' gear=' + b[4] + ' lock=' + lock + ' blinkL=' + blinkL + ' blinkR=' + blinkR + ' trip=' + (rdU16BE(b, 16) / 10).toFixed(1) + 'km', 'log-ok');
   } else if (sub === 0x01 && b.length >= 16) {
     const fault = rdU16BE(b, 8);
     const faults = faultList(fault);
