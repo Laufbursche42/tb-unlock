@@ -1,3 +1,5 @@
+> 🚨 **This tool is moving.** This repository is **no longer maintained** - please switch to the new tool: **[lb-tool-web.laufbursche.workers.dev](https://lb-tool-web.laufbursche.workers.dev/)**. Trouble switching? Open an [issue on GitHub](https://github.com/Laufbursche42/Laufbursche42/issues/new) or send a [PM on the eScooter-Stammtisch forum](https://www.escooter-stammtisch.de/index.php?user/6497-laufbursche/).
+
 # Laufbursche Trittbrett Tool
 
 A static web page that talks to a Trittbrett e-scooter over Web Bluetooth. It reads the live telemetry
