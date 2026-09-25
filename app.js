@@ -5,7 +5,7 @@
 // to lb-tool-web; nothing on the wire is invented here.
 // Build version - the pre-commit hook bumps it and syncs index.html ?v=; also shown in the footer.
 // Kept at column zero so the hook's `^const BUILD = 'vN'` match finds it.
-const BUILD = 'v22';
+const BUILD = 'v23';
 
 (function () {
 
@@ -100,7 +100,7 @@ const BUILD = 'v22';
   ];
 
   // ---- i18n ----------------------------------------------------------------
-  var HTML_KEY = /Html$/; // ONLY keys ending in "Html" are injected with innerHTML
+  var HTML_KEY = /Html$/; // keys ending in "Html" (or values with tags/entities) render as HTML
   function dict() { return (window.UI_I18N && window.UI_I18N[state.lang]) || {}; }
   function t(key) {
     var d = dict();
@@ -111,13 +111,13 @@ const BUILD = 'v22';
   function brand() { return state.cfg && state.cfg.brand ? state.cfg.brand.title : ''; }
   function fill(str) { return String(str).replace(/\{brand\}/g, brand()).replace(/\s{2,}/g, ' ').trim(); }
 
-  // Apply all static [data-t] nodes. textContent for everything except *Html keys.
+  // Apply all static [data-t] nodes. innerHTML for *Html keys or values with tags/entities; textContent otherwise.
   function applyStaticI18n(root) {
     $$('[data-t]', root || document).forEach(function (el) {
       if (el.id === 'status') return; // status text is dynamic (see setStatus)
       var key = el.getAttribute('data-t');
       var val = fill(t(key));
-      if (HTML_KEY.test(key)) el.innerHTML = val; else el.textContent = val;   // scan-ok: only *Html i18n keys are injected as HTML
+      if (HTML_KEY.test(key) || /[<&]/.test(val)) el.innerHTML = val; else el.textContent = val;   // scan-ok: our own i18n table; *Html keys or values with tags/entities render as HTML
     });
     $$('[data-t-ph]', root || document).forEach(function (el) {
       el.setAttribute('placeholder', fill(t(el.getAttribute('data-t-ph'))));
