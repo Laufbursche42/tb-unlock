@@ -13,8 +13,9 @@ const path = require('path');
 const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 // Every script the page loads, so a key used from one of them does not read as unused.
-// SO4 ships a single script: app.js (no led.js, no ota.js).
-const SCRIPTS = ['app.js'];
+// The Trittbrett tool loads the shell plus the base + zyd drivers (the driver control labelKeys
+// live as string literals in drivers/zyd.js).
+const SCRIPTS = ['app.js', 'drivers/base.js', 'drivers/zyd.js'];
 const app = SCRIPTS
   .filter(f => fs.existsSync(path.join(root, f)))
   .map(f => fs.readFileSync(path.join(root, f), 'utf8'))
@@ -22,7 +23,7 @@ const app = SCRIPTS
 
 global.window = {};
 require(path.join(root, 'i18n.js'));
-const I18N = global.window.I18N;
+const I18N = global.window.UI_I18N;
 
 // Every key path in one language, "phase.START" style for nested entries.
 function paths(obj, prefix) {

@@ -18,7 +18,7 @@ desktop.ini
 node_modules/
 npm-debug.log*
 
-# --- Python (local runs of tools/soflow_speed.py) ---
+# --- Python (local runs of scripts/security-scan.py) ---
 __pycache__/
 *.pyc
 *.pyo
