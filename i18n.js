@@ -23,7 +23,7 @@ window.UI_I18N = {
     introDisclaimer: 'Dieses Werkzeug ist eine Machbarkeitsstudie ohne Gewähr auf Funktion oder Sicherheit.',
     introDisclaimerLink: 'Haftungsausschluss lesen',
     introWarningHtml: 'Nutze das Tool nur am eigenen Fahrzeug auf privatem Grund. Wer die Höchstgeschwindigkeit anhebt, entfernt die Drossel. <b>Die ABE erlischt und die Nutzung im öffentlichen Verkehr ist dann nicht erlaubt.</b>',
-    movedHint: 'Hinweis: Dieses Werkzeug wandert nach <a href="https://lb-tool-web.pages.dev/" target="_blank" rel="noopener">lb-tool-web.pages.dev</a>, das mehrere Roller unter einem Dach bündelt.',
+    movedHintHtml: 'Hinweis: Dieses Werkzeug wandert nach <a href="https://lb-tool-web.pages.dev/" target="_blank" rel="noopener">lb-tool-web.pages.dev</a>, das mehrere Roller unter einem Dach bündelt.',
 
     // --- connection ---
     connTitle: 'Verbindung',
@@ -198,7 +198,7 @@ window.UI_I18N = {
     introDisclaimer: 'This tool is a feasibility study with no warranty of function or safety.',
     introDisclaimerLink: 'read the disclaimer',
     introWarningHtml: 'Use the tool only on your own vehicle, on private ground. Raising the top speed removes the limiter. <b>The vehicle then loses its type approval (ABE) and may no longer be used on public roads.</b>',
-    movedHint: 'Note: this tool is moving to <a href="https://lb-tool-web.pages.dev/" target="_blank" rel="noopener">lb-tool-web.pages.dev</a>, which brings several scooters under one roof.',
+    movedHintHtml: 'Note: this tool is moving to <a href="https://lb-tool-web.pages.dev/" target="_blank" rel="noopener">lb-tool-web.pages.dev</a>, which brings several scooters under one roof.',
 
     // --- connection ---
     connTitle: 'Connection',
