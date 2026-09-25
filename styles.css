@@ -10,6 +10,7 @@
   color-scheme: dark;
   --warn-bg: #FFAA1814; --warn-line: #FFAA1840; --warn-strong: #ffc65a;
   --bad-bg: #FF505014; --bad-line: #FF505040; --bad-strong: #ff8080;
+  --accent-bg: #B8F02022;
   --bad-line-soft: #3a2030; --warn-line-soft: #3a3020;
   --backdrop: rgba(0,0,0,.72); --shadow: rgba(0,0,0,.5);
   --tx: #6cb6ff; --rx: #e0b25a;
@@ -22,6 +23,7 @@
   --scroll: #B6C0D4; --field: #FFFFFF; --chip: #F1F4FA; --on-accent: #FFFFFF;
   color-scheme: light;
   --warn-strong: #7A4300; --bad-strong: #A01818;
+  --accent-bg: #2A6A0016;
   --bad-line-soft: #E0B4B4; --warn-line-soft: #E0CBA4;
   --backdrop: rgba(10,13,24,.45); --shadow: rgba(10,13,24,.18);
   --tx: #0b6bcb; --rx: #8a5a00;
@@ -114,6 +116,11 @@ label { color: var(--label); font-size: 12px; text-transform: uppercase; letter-
 .warn b { color: var(--warn-strong); }
 .warn p { margin: 0; }
 .warn > * + * { margin-top: 7px; }
+
+/* Prominent relocation notice above the first card. */
+.banner { background: var(--accent-bg); border: 1px solid var(--accent); border-radius: 12px;
+  padding: 12px 14px; color: var(--text); font-size: 13px; line-height: 1.5; font-weight: 600; }
+.banner a { color: var(--accent); font-weight: 700; }
 code { font-family: var(--mono); font-size: 12px; background: var(--field); border: 1px solid var(--line);
   border-radius: 5px; padding: 1px 5px; color: var(--value); word-break: break-all; }
 

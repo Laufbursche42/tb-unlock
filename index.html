@@ -10,7 +10,7 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
-<link rel="stylesheet" href="styles.css?v=22">
+<link rel="stylesheet" href="styles.css?v=23">
 </head>
 <body>
 <div class="wrap">
@@ -30,6 +30,9 @@
     </div>
   </header>
 
+  <!-- prominent relocation notice (movedHintHtml renders its link via applyStaticI18n) -->
+  <div class="banner" data-t="movedHintHtml"></div>
+
   <!-- shown only when the browser has no Web Bluetooth -->
   <p class="warn" id="platform-note" data-t="noWebBt" hidden></p>
 
@@ -45,7 +48,6 @@
         <p><a href="#" id="intro-disclaimer-link" data-t="introDisclaimerLink"></a></p>
       </div>
       <p class="browser-req" data-t="appleOnlyHtml"></p>
-      <p class="hint" data-t="movedHintHtml"></p>
     </div>
   </details>
 
