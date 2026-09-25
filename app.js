@@ -5,7 +5,7 @@
 // to lb-tool-web; nothing on the wire is invented here.
 // Build version - the pre-commit hook bumps it and syncs index.html ?v=; also shown in the footer.
 // Kept at column zero so the hook's `^const BUILD = 'vN'` match finds it.
-const BUILD = 'v24';
+const BUILD = 'v26';
 
 (function () {
 
