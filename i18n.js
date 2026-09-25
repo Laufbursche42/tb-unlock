@@ -23,7 +23,7 @@ window.UI_I18N = {
     introDisclaimer: 'Dieses Werkzeug ist eine Machbarkeitsstudie ohne Gewähr auf Funktion oder Sicherheit.',
     introDisclaimerLink: 'Haftungsausschluss lesen',
     introWarningHtml: 'Nutze das Tool nur am eigenen Fahrzeug auf privatem Grund. Wer die Höchstgeschwindigkeit anhebt, entfernt die Drossel. <b>Die ABE erlischt und die Nutzung im öffentlichen Verkehr ist dann nicht erlaubt.</b>',
-    movedHintHtml: 'Hinweis: Dieses Werkzeug wandert nach <a href="https://lb-tool-web.pages.dev/" target="_blank" rel="noopener">lb-tool-web.pages.dev</a>, das mehrere Roller unter einem Dach bündelt.',
+    sunsetBannerHtml: '<b>Dieses Tool zieht um.</b> Dieses Repo wird <b>nicht mehr weiterentwickelt</b> - bitte wechsle zum neuen Tool: <a href="https://lb-tool-web.pages.dev/" target="_blank" rel="noopener">lb-tool-web.pages.dev</a>. Probleme beim Wechsel? Öffne ein <a href="https://github.com/Laufbursche42/Laufbursche42/issues/new" target="_blank" rel="noopener">Issue auf GitHub</a> oder schick eine <a href="https://www.escooter-stammtisch.de/index.php?user/6497-laufbursche/" target="_blank" rel="noopener">PN im eScooter-Stammtisch</a>.',
 
     // --- connection ---
     connTitle: 'Verbindung',
@@ -198,7 +198,7 @@ window.UI_I18N = {
     introDisclaimer: 'This tool is a feasibility study with no warranty of function or safety.',
     introDisclaimerLink: 'read the disclaimer',
     introWarningHtml: 'Use the tool only on your own vehicle, on private ground. Raising the top speed removes the limiter. <b>The vehicle then loses its type approval (ABE) and may no longer be used on public roads.</b>',
-    movedHintHtml: 'Note: this tool is moving to <a href="https://lb-tool-web.pages.dev/" target="_blank" rel="noopener">lb-tool-web.pages.dev</a>, which brings several scooters under one roof.',
+    sunsetBannerHtml: '<b>This tool is moving.</b> This repository is <b>no longer maintained</b> - please switch to the new tool: <a href="https://lb-tool-web.pages.dev/" target="_blank" rel="noopener">lb-tool-web.pages.dev</a>. Trouble switching? Open an <a href="https://github.com/Laufbursche42/Laufbursche42/issues/new" target="_blank" rel="noopener">issue on GitHub</a> or send a <a href="https://www.escooter-stammtisch.de/index.php?user/6497-laufbursche/" target="_blank" rel="noopener">PM on the eScooter-Stammtisch forum</a>.',
 
     // --- connection ---
     connTitle: 'Connection',
