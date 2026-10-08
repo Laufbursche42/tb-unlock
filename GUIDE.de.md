@@ -2,6 +2,8 @@
 
 Das Trittbrett Tool verbindet sich per Web Bluetooth mit deinem Scooter, liest die Live-Werte und nimmt bei den neueren ZYD-Modellen die Drossel heraus. Alles läuft direkt auf dieser Seite, ohne Installation.
 
+> **Wichtig für Fehler-Reports:** Schalte unten auf der Seite den **Diagnose-Log** ein, *bevor* du dich mit dem Scooter verbindest. Nur dann wird der komplette Verbindungsaufbau mitgeschnitten - und genau diese Zeilen brauchen wir in einem [Ticket](https://github.com/Laufbursche42/Laufbursche42/issues), um ein Problem nachzuvollziehen.
+
 ## Was du brauchst
 
 - Einen Trittbrett-E-Scooter. Die neueren ZYD-Modelle (FRITZ, PAUL, SULTAN, Hilde 1, Hilde 2, KALLE v2, EMMA v2) melden sich per Bluetooth mit einem Namen, der mit `zyd` oder `hw_` beginnt. Die älteren KALLE v1 und EMMA v1 melden sich als `Scooter`.

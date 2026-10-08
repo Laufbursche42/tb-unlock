@@ -6,19 +6,23 @@ window.UI_I18N = {
   de: {
     // --- document / header ---
     pageTitle: 'Laufbursche Trittbrett Tool',
-    wordmarkTool: 'Trittbrett Tool',
+    brandSub: 'Trittbrett Tool',
+    androidAppHtml: 'Android-Nutzer: Es gibt eine native Android-App, die dasselbe ohne Browser macht - <a href="https://github.com/Laufbursche42/tb-lb-edition" target="_blank" rel="noopener">tb-lb-edition</a>. Sie umgeht die Web-Bluetooth-Hürden (manche Handys, etwa Samsung mit Auto Blocker, blockieren die Browser-Verbindung). Diese Web-Seite ist der Weg für iOS.',
     stDisconnected: 'getrennt',
-    stConnecting: 'verbinde …',
-    stLinking: 'koppeln …',
+    stConnecting: 'verbinde ...',
+    stLinking: 'koppeln ...',
     stConnected: 'verbunden',
+    stNoService: 'kein Dienst',
 
     // --- platform note / browser hint ---
     appleOnlyHtml: 'Auf dem iPhone nur mit <a href="https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055" target="_blank" rel="noopener">Bluefy</a>. Auf Android oder Desktop mit <a href="https://play.google.com/store/apps/details?id=com.android.chrome" target="_blank" rel="noopener">Chrome</a> oder <a href="https://play.google.com/store/apps/details?id=com.microsoft.emmx" target="_blank" rel="noopener">Edge</a>.',
     noWebBt: 'Dieser Browser unterstützt Web Bluetooth nicht. Bitte Chrome, Edge oder Bluefy verwenden.',
 
     // --- intro ---
-    introTitle: 'Einführung',
-    introLive: 'Live per Web Bluetooth mit deinem {brand}-E-Scooter. Nichts verlässt dein Gerät.',
+    introTitle: 'So fängst du an',
+    introLive: 'Live über Web Bluetooth mit deinem Trittbrett-E-Scooter reden. Läuft in Bluefy (iOS) oder Chrome bzw. Edge (Android/Desktop). Der Bluetooth-Teil verlässt dein Gerät nicht, es gibt kein Konto und keinen Server.',
+    expWarn: 'Machbarkeitsstudie: Diese Seite zeigt, was das Bluetooth-Protokoll eines Trittbrett-E-Scooters technisch möglich macht. Sie ist kein fertiges Produkt. Es gibt keine Gewährleistung. Alles was du hier tust, tust du auf eigenes Risiko. <a href="#DISCLAIMER">Haftungsausschluss lesen</a>.',
+    ownDevice: 'Nur am eigenen Fahrzeug auf privatem Gelände. Das Anheben der Höchstgeschwindigkeit hebt die Drossel auf, die ABE erlischt und der Betrieb auf öffentlichen Wegen ist dann nicht erlaubt.',
     introGuide: 'Neu hier? Die Anleitung erklärt jeden Schritt.',
     introDisclaimer: 'Dieses Werkzeug ist eine Machbarkeitsstudie ohne Gewähr auf Funktion oder Sicherheit.',
     introDisclaimerLink: 'Haftungsausschluss lesen',
@@ -52,7 +56,7 @@ window.UI_I18N = {
     devDrosselBle: 'über Bluetooth', devNo: 'Nein', devNA: '-',
 
     // --- log options ---
-    publicLogLabel: 'Log anonymisieren zum öffentlichen Teilen',
+    publicLogLabel: 'Öffentliches Log (Gerätename/ID anonymisieren)',
     publicLogTitle: 'Log anonymisieren',
     publicLogHelpHtml: '<p>Wenn dies aktiv ist (Standard), wird das Protokoll anonymisiert: Bluetooth-/MAC-Adressen, Seriennummern (FIN), Schlüssel und rohe Geräte-IDs werden geschwärzt. So kannst du das Log gefahrlos auf GitHub posten oder zur Fehlersuche teilen.</p><p>Nur ausschalten, wenn du das ungekürzte Protokoll <b>lokal</b> für dich selbst brauchst - dann bitte nicht öffentlich teilen.</p>',
 
@@ -88,11 +92,17 @@ window.UI_I18N = {
     tileBattTemp: 'Akku-Temp',
     tileCap: 'Kapazität',
     tileDisp: 'Display-Version',
+    tileEscTemp: 'ESC-Temp',
+    tileCruiseLimit: 'Tempomat-Limit',
+    tileModeLimits: 'Modus-Limits',
+    tileHlState: 'Licht',
+    tileAmbState: 'Ambientelicht',
+    tileUnitState: 'Einheit',
 
     // --- settings ---
-    setTitle: 'Einstellungen',
+    setTitle: 'Weitere Einstellungen',
     setEmpty: 'Einstellungen erscheinen nach dem Verbinden.',
-    advTitle: 'Erweiterte Einstellungen',
+    advTitle: 'Erweiterte Einstellungen (Engine-Ebene)',
     advEmpty: 'Erweiterte Einstellungen erscheinen nach dem Verbinden mit einem Scooter.',
     toggleOn: 'AN',
     toggleOff: 'AUS',
@@ -140,13 +150,14 @@ window.UI_I18N = {
     ctlServiceKm: 'Wartungsintervall',
 
     // --- log ---
-    logTitle: 'Protokoll',
+    logTitle: 'Protokoll-Log',
+    s6Title: 'Protokoll-Log',
     btnCopyLog: 'Kopieren',
     btnClearLog: 'Leeren',
-    btnSaveLog: 'Als .txt speichern',
+    btnSaveLog: 'Speichern',
     logTxLegend: 'gesendet',
     logRxLegend: 'empfangen',
-    diagLogLabel: 'Diagnose-Log (alles roh mitschneiden)',
+    diagLogLabel: 'Diagnose-Log',
     diagOn: 'Diagnose-Log an: alle Frames werden roh geloggt.',
     diagOff: 'Diagnose-Log aus.',
     diagLogTitle: 'Diagnose-Log',
@@ -155,7 +166,17 @@ window.UI_I18N = {
     logCopied: 'Protokoll in die Zwischenablage kopiert.',
     logSaved: 'Protokoll als Datei gespeichert.',
 
+    // --- battery telemetry + settings groups (canonical shell) ---
+    battTitle: 'Akku-Telemetrie',
+    battHint: 'Akku-Werte wie Ladestand, Spannung und Temperatur erscheinen bei den Live-Werten, sobald der verbundene Scooter sie meldet.',
+    help_batt_t: 'Akku-Telemetrie',
+    help_batt_b: 'Ladezustand, Spannung und Temperatur des Akkus, soweit der Scooter sie meldet. Ein Strich bedeutet, dass dieser Wert noch nicht ankam.',
+    setgrpSpeed: 'Tempo und Freischaltung',
+    setgrpGeneral: 'Allgemein',
+
     // --- footer ---
+    footSource: 'Quellcode',
+    footIssue: 'Fehler melden',
     footGuide: 'Anleitung',
     footReadme: 'Readme',
     footChangelog: 'Änderungen',
@@ -170,7 +191,7 @@ window.UI_I18N = {
 
     // --- dialogs ---
     docClose: 'Schließen',
-    docLoading: 'Lädt …',
+    docLoading: 'Lädt ...',
     docMissing: 'Dieses Dokument fehlt.',
     confirmTitle: 'Bestätigung erforderlich',
     confirmBody: 'Dieser Schreibvorgang ist riskant: {action}. Wirklich senden?',
@@ -181,19 +202,23 @@ window.UI_I18N = {
   en: {
     // --- document / header ---
     pageTitle: 'Laufbursche Trittbrett Tool',
-    wordmarkTool: 'Trittbrett Tool',
+    brandSub: 'Trittbrett Tool',
+    androidAppHtml: 'On Android? There is a native Android app that does the same without a browser - <a href="https://github.com/Laufbursche42/tb-lb-edition" target="_blank" rel="noopener">tb-lb-edition</a>. It avoids the Web Bluetooth hurdles (some phones, for example Samsung with Auto Blocker on, block the browser connection). This web page is the way in on iOS.',
     stDisconnected: 'disconnected',
-    stConnecting: 'connecting …',
-    stLinking: 'linking …',
+    stConnecting: 'connecting ...',
+    stLinking: 'linking ...',
     stConnected: 'connected',
+    stNoService: 'no service',
 
     // --- platform note / browser hint ---
     appleOnlyHtml: 'On iPhone only via <a href="https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055" target="_blank" rel="noopener">Bluefy</a>. On Android or Desktop via <a href="https://play.google.com/store/apps/details?id=com.android.chrome" target="_blank" rel="noopener">Chrome</a> or <a href="https://play.google.com/store/apps/details?id=com.microsoft.emmx" target="_blank" rel="noopener">Edge</a>.',
     noWebBt: 'This browser does not support Web Bluetooth. Please use Chrome, Edge or Bluefy.',
 
     // --- intro ---
-    introTitle: 'Introduction',
-    introLive: 'Live over Web Bluetooth with your {brand} e-scooter. Nothing leaves your device.',
+    introTitle: 'Getting started',
+    introLive: 'Talk to your Trittbrett scooter live over Web Bluetooth. Runs in Bluefy (iOS) or Chrome/Edge (Android/desktop). The Bluetooth part never leaves your device, and there is no account and no server.',
+    expWarn: 'Feasibility study: this page shows what the Bluetooth protocol of a Trittbrett scooter makes possible. It is not a finished product. There is no warranty. Whatever you do here, you do at your own risk. <a href="#DISCLAIMER">Read the disclaimer</a>.',
+    ownDevice: 'Only on your own vehicle on private ground. Raising the top speed removes the throttle, the type approval becomes void and riding on public roads is then not allowed.',
     introGuide: 'New here? The guide covers every step.',
     introDisclaimer: 'This tool is a feasibility study with no warranty of function or safety.',
     introDisclaimerLink: 'read the disclaimer',
@@ -227,7 +252,7 @@ window.UI_I18N = {
     devDrosselBle: 'over Bluetooth', devNo: 'No', devNA: '-',
 
     // --- log options ---
-    publicLogLabel: 'Anonymize log to share publicly',
+    publicLogLabel: 'Public log (anonymize device name/id)',
     publicLogTitle: 'Anonymize log',
     publicLogHelpHtml: '<p>When this is on (the default), the log is anonymized: Bluetooth / MAC addresses, serial numbers (VIN), keys and raw device IDs are redacted. So you can safely post it on GitHub or share it for troubleshooting.</p><p>Only turn it off if you need the full log <b>locally</b> for yourself - then do not share it publicly.</p>',
 
@@ -263,11 +288,17 @@ window.UI_I18N = {
     tileBattTemp: 'Batt temp',
     tileCap: 'Capacity',
     tileDisp: 'Display version',
+    tileEscTemp: 'ESC temp',
+    tileCruiseLimit: 'Cruise limit',
+    tileModeLimits: 'Mode limits',
+    tileHlState: 'Light',
+    tileAmbState: 'Ambient light',
+    tileUnitState: 'Unit',
 
     // --- settings ---
-    setTitle: 'Settings',
+    setTitle: 'More settings',
     setEmpty: 'Settings appear after connecting.',
-    advTitle: 'Advanced settings',
+    advTitle: 'Advanced settings (engine level)',
     advEmpty: 'Advanced settings appear after connecting to a scooter.',
     toggleOn: 'ON',
     toggleOff: 'OFF',
@@ -315,13 +346,14 @@ window.UI_I18N = {
     ctlServiceKm: 'Service interval',
 
     // --- log ---
-    logTitle: 'Log',
+    logTitle: 'Protocol log',
+    s6Title: 'Protocol log',
     btnCopyLog: 'Copy',
     btnClearLog: 'Clear',
-    btnSaveLog: 'Save as .txt',
+    btnSaveLog: 'Save',
     logTxLegend: 'sent',
     logRxLegend: 'received',
-    diagLogLabel: 'Diagnostic log (capture everything raw)',
+    diagLogLabel: 'Diagnostic log',
     diagOn: 'Diagnostic log on: all frames logged raw.',
     diagOff: 'Diagnostic log off.',
     diagLogTitle: 'Diagnostic log',
@@ -330,7 +362,17 @@ window.UI_I18N = {
     logCopied: 'Log copied to clipboard.',
     logSaved: 'Log saved as file.',
 
+    // --- battery telemetry + settings groups (canonical shell) ---
+    battTitle: 'Battery telemetry',
+    battHint: 'Battery values such as charge, voltage and temperature appear under Live values as soon as the connected scooter reports them.',
+    help_batt_t: 'Battery telemetry',
+    help_batt_b: 'State of charge, voltage and temperature of the battery, as far as the scooter reports them. A dash means that value has not arrived yet.',
+    setgrpSpeed: 'Speed and unlocking',
+    setgrpGeneral: 'General',
+
     // --- footer ---
+    footSource: 'Source',
+    footIssue: 'Report an issue',
     footGuide: 'Guide',
     footReadme: 'Readme',
     footChangelog: 'Changelog',
@@ -345,7 +387,7 @@ window.UI_I18N = {
 
     // --- dialogs ---
     docClose: 'Close',
-    docLoading: 'Loading …',
+    docLoading: 'Loading ...',
     docMissing: 'This document is missing.',
     confirmTitle: 'Confirmation required',
     confirmBody: 'This write is risky: {action}. Really send it?',
@@ -353,3 +395,6 @@ window.UI_I18N = {
     confirmCancel: 'Cancel',
   },
 };
+
+// Canonical alias: the shared tooling and shell read window.I18N; app.js uses window.UI_I18N.
+window.I18N = window.UI_I18N;

@@ -5,7 +5,7 @@
 // to lb-tool-web; nothing on the wire is invented here.
 // Build version - the pre-commit hook bumps it and syncs index.html ?v=; also shown in the footer.
 // Kept at column zero so the hook's `^const BUILD = 'vN'` match finds it.
-const BUILD = 'v26';
+const BUILD = 'v27';
 
 (function () {
 
@@ -42,6 +42,40 @@ const BUILD = 'v26';
       { n: 'HobbyWing',  de: 'Motor-Steuergeräte; eine Marke ihres Herstellers.', en: 'motor controllers; a trademark of its maker.' },
     ],
   };
+
+  // ---- protocol self-test (load-time; mirrors inokim-unlock FRAME_OK) ------
+  // Asserts THIS page's own wire builders (the ZYD driver, drivers/zyd.js) reproduce known-good byte
+  // vectors AND that every built frame re-validates by its own checksum. The known vectors are the
+  // Trittbrett app's OWN hardcoded command strings on the legacy raw FF55 path (8-bit additive
+  // checksum) plus the ZYD keep control frame. The CRC-16/MODBUS path is round-tripped via the MODBUS
+  // residue: recomputing _crc16 over a frame with its own CRC appended yields [0,0]. Not a tautology -
+  // it exercises _ff55/_keep/_crc16/_rwParam/_monitor for real.
+  var FRAME_OK = (function () {
+    try {
+      var Drv = window.DRIVERS && window.DRIVERS.zyd;
+      if (!Drv) return false;
+      var d = new Drv(TB_CONFIG);
+      var eq = function (a, b) { return a.length === b.length && a.every(function (v, i) { return (v & 0xff) === (b[i] & 0xff); }); };
+      // KNOWN-VECTOR: legacy FF55 builder vs the Trittbrett app's own hardcoded command hex strings
+      var kv =
+        eq(d._ff55(0x01, []),     [0xFF, 0x55, 0x01, 0x00, 0x55]) &&         // keep/confirm "FF 55 01 00 55"
+        eq(d._ff55(0x1F, [0x02]), [0xFF, 0x55, 0x1F, 0x01, 0x02, 0x76]) &&   // gear D1    "FF 55 1F 01 02 76"
+        eq(d._ff55(0x1F, [0x03]), [0xFF, 0x55, 0x1F, 0x01, 0x03, 0x77]) &&   // gear D2    "FF 55 1F 01 03 77"
+        eq(d._ff55(0x17, [0x01]), [0xFF, 0x55, 0x17, 0x01, 0x01, 0x6D]) &&   // unlock     "FF 55 17 01 01 6D"
+        eq(d._ff55(0x17, [0x02]), [0xFF, 0x55, 0x17, 0x01, 0x02, 0x6E]) &&   // lock       "FF 55 17 01 02 6E"
+        eq(d._keep(),             [0xA5, 0x02, 0xFD, 0x5A]);                  // ZYD keep   "A5 02 FD 5A"
+      // ROUND-TRIP: CRC-16/MODBUS path. A real speed-register write (reg 0x20 = km/h*10, eKFV 22 -> 220)
+      // and a monitor/base-param frame must each carry a self-consistent CRC - recomputing _crc16 over
+      // the whole frame (body + appended CRC) gives [0,0] (MODBUS residue).
+      var residueZero = function (f) { var c = d._crc16(f); return c[0] === 0 && c[1] === 0; };
+      var speedFrame = d._rwParam(0x20, d._u16(Math.round(22 * 10)));
+      var monFrame = d._monitor(0x00, 0, 0, 0, 0);
+      var rt = residueZero(speedFrame) && residueZero(monFrame) &&
+        speedFrame[0] === 0x01 && speedFrame[1] === 0x17 &&   // head 0x01 + CMD_RW_PARAMETER 0x17
+        monFrame[0] === 0xAB && monFrame[2] === 0x0A;         // monitor head 0xAB + length 0x0A
+      return kv && rt;
+    } catch (e) { return false; }
+  })();
 
   // ---- small helpers -------------------------------------------------------
   var $ = function (sel, root) { return (root || document).querySelector(sel); };
@@ -97,6 +131,12 @@ const BUILD = 'v26';
     { id: 'battTemp', labelKey: 'tileBattTemp' },
     { id: 'cap',      labelKey: 'tileCap' },
     { id: 'disp',     labelKey: 'tileDisp' },
+    { id: 'escTemp',    labelKey: 'tileEscTemp' },     // ESC/controller temp (Frame A buf[14] s8, zyd.js:396)
+    { id: 'cruiseLimit', labelKey: 'tileCruiseLimit' }, // cruise speed cap (Frame B buf[3], zyd.js:419)
+    { id: 'modeLimits', labelKey: 'tileModeLimits' },   // per-mode speed caps m1/m2/m3 (Frame B buf[4..6], zyd.js:418)
+    { id: 'hlState',    labelKey: 'tileHlState' },      // headlight state (Frame A word@21 bit2, zyd.js:402)
+    { id: 'ambState',   labelKey: 'tileAmbState' },     // ambient-light state (Frame A word@21 bit15, zyd.js:407)
+    { id: 'unitState',  labelKey: 'tileUnitState' },    // unit state kmh/mph (Frame A word@21 bit6, zyd.js:404)
   ];
 
   // ---- i18n ----------------------------------------------------------------
@@ -117,7 +157,7 @@ const BUILD = 'v26';
       if (el.id === 'status') return; // status text is dynamic (see setStatus)
       var key = el.getAttribute('data-t');
       var val = fill(t(key));
-      if (HTML_KEY.test(key)) el.innerHTML = val; else el.textContent = val;   // scan-ok: only *Html i18n keys are injected as HTML
+      if (HTML_KEY.test(key) || val.indexOf('<') >= 0) el.innerHTML = val; else el.textContent = val;   // scan-ok: *Html keys and any value with an embedded tag (e.g. expWarn's disclaimer link) render as HTML
     });
     $$('[data-t-ph]', root || document).forEach(function (el) {
       el.setAttribute('placeholder', fill(t(el.getAttribute('data-t-ph'))));
@@ -133,7 +173,7 @@ const BUILD = 'v26';
     if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
     else document.documentElement.removeAttribute('data-theme');
     var btn = $('#btn-theme');
-    if (btn) btn.innerHTML = theme === 'light' ? '&#9789;' : '&#9728;'; // moon / sun   // scan-ok: literal icon entity
+    if (btn) btn.textContent = theme === 'light' ? '\u263d' : '\u2600'; // moon / sun
   }
   function toggleTheme() {
     var now = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
@@ -187,7 +227,7 @@ const BUILD = 'v26';
     return redact(s.replace(/\x01[^\x01]*\x01/g, 'XX').replace(/\x01/g, ''));
   }
   function log(msg, cls) {
-    var ts = new Date().toISOString().slice(11, 19);
+    var ts = new Date().toTimeString().slice(0, 8);
     var raw = '[' + ts + '] ' + msg;          // stored raw (with sentinels); anonymized on the way out
     state.logBuffer.push({ raw: raw, cls: cls || '' });
     var pre = $('#log');
@@ -211,7 +251,20 @@ const BUILD = 'v26';
     });
     pre.scrollTop = pre.scrollHeight;
   }
-  function clearLog() { state.logBuffer = []; var pre = $('#log'); if (pre) pre.textContent = ''; log(t('logCleared')); }
+  function clearLog() { state.logBuffer = []; var pre = $('#log'); if (pre) pre.textContent = ''; logDiagnosticHeader(); log(t('logCleared')); }
+  // On-load diagnostic header (matches inokim/ap): printed on load and on clear-log so the Protokoll-Log
+  // always opens with build + environment info. The protocol self-test (FRAME_OK) runs at load.
+  function logDiagnosticHeader() {
+    log('=== tb-unlock diagnostic ===');
+    log('build: ' + BUILD);
+    log('time: ' + new Date().toISOString());
+    log('userAgent: ' + (navigator.userAgent || '?'));
+    log('platform: ' + (navigator.platform || '?'));
+    log('webBluetooth: ' + (navigator.bluetooth ? 'yes' : 'no'));
+    log('protocol self-test: ' + (FRAME_OK ? 'OK' : 'FAILED'), FRAME_OK ? '' : 'log-err');
+    log('================================');
+    if (!FRAME_OK) log('protocol self-test FAILED - frame builder/checksum did not match known-good vectors', 'log-err');
+  }
   function copyLog() {
     var text = state.logBuffer.map(function (e) { return anonymize(e.raw); }).join('\n');
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -550,6 +603,9 @@ const BUILD = 'v26';
       total: tel.totalKm, temp: tel.motorTemp,
       cruise: tel.cruiseState, battTemp: tel.batteryTemp, cap: tel.capacity,
       disp: tel.config && tel.config.displayVersion,
+      escTemp: tel.escTemp, cruiseLimit: tel.cruiseLimit,
+      modeLimits: tel.speedLimits && tel.speedLimits.perMode,
+      hlState: tel.headlightState, ambState: tel.ambientState, unitState: tel.unitState,
     };
   }
   function updateTiles(tel) {
@@ -772,6 +828,15 @@ const BUILD = 'v26';
     setDrosselEnabled(state.connected);
   }
 
+  // ---- uniform shell: cards hidden until connected -------------------------
+  // On load only intro + connection + log are visible; these telemetry/settings cards are revealed
+  // on connect and hidden again on disconnect (UI only; no protocol involved).
+  function setConnectedCards(on) {
+    ['live-card', 'batt-card', 'more-card', 'raw-card'].forEach(function (id) {
+      var el = $('#' + id); if (el) el.hidden = !on;
+    });
+  }
+
   // ---- speed limiter (lock/unlock) ----------------------------------------
   function setDrosselEnabled(on) {
     $$('#sect-lock button, #sect-lock input').forEach(function (el) { el.disabled = !on; });
@@ -864,6 +929,7 @@ const BUILD = 'v26';
       return drv.connect(device).then(function () {
         state.connected = true;
         setStatus('stConnected', 'connected');
+        setConnectedCards(true);
         setDrosselEnabled(true);
         renderSettings(); renderAdvanced(); renderLock();
         rememberDevice(device);
@@ -882,6 +948,7 @@ const BUILD = 'v26';
   function onDisconnected() {
     state.connected = false;
     setStatus('stDisconnected', 'disconnected');
+    setConnectedCards(false);
     setDrosselEnabled(false);
     renderSettings(); renderAdvanced(); renderLock();
     resetLiveTiles();
@@ -892,6 +959,7 @@ const BUILD = 'v26';
     if (state.driver) { try { state.driver.disconnect(); } catch (e) {} }
     state.connected = false;
     setStatus('stDisconnected', 'disconnected');
+    setConnectedCards(false);
     setDrosselEnabled(false);
     renderSettings(); renderAdvanced(); renderLock();
     resetLiveTiles();
@@ -1006,7 +1074,7 @@ const BUILD = 'v26';
       a.addEventListener('click', function (e) { e.preventDefault(); openDoc(a.getAttribute('data-doc')); });
     });
     $('#link-disclaimer').addEventListener('click', function (e) { e.preventDefault(); openDoc('DISCLAIMER'); });
-    $('#intro-disclaimer-link').addEventListener('click', function (e) { e.preventDefault(); openDoc('DISCLAIMER'); });
+    // #intro-disclaimer-link removed with the inline disclaimer; the expWarn link (href="#DISCLAIMER") and the footer link open it
     // any rendered markdown link like [text](#DISCLAIMER) opens that doc modal
     document.addEventListener('click', function (e) {
       var a = e.target.closest ? e.target.closest('a[href]') : null;
@@ -1029,6 +1097,7 @@ const BUILD = 'v26';
     log('Laufbursche Trittbrett Tool ready - Build ' + BUILD);
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
+  // Print the diagnostic header on load (near the start of init) before boot wires up the rest.
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { logDiagnosticHeader(); boot(); });
+  else { logDiagnosticHeader(); boot(); }
 })();

@@ -10,19 +10,19 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
-<link rel="stylesheet" href="styles.css?v=26">
+<link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
 <div class="wrap">
 
-  <!-- (a) header ---------------------------------------------------------- -->
+  <!-- header (canonical) -------------------------------------------------- -->
   <header>
-    <h1>Laufbursche <span data-t="wordmarkTool">Trittbrett Tool</span></h1>
+    <h1>Laufbursche <span data-t="brandSub"></span></h1>
     <div class="head-right">
-      <span class="status" id="status" data-state="disconnected" data-t="stDisconnected"></span>
+      <span class="status" id="status" data-state="disconnected">disconnected</span>
       <div class="head-tools">
-        <button type="button" class="theme-btn" id="btn-theme" aria-label="Theme">&#9728;</button>
-        <div class="langs" id="langs" role="group" aria-label="Language">
+        <button type="button" class="theme-btn" id="btn-theme">&#9728;</button>
+        <div class="langs" id="langs" role="group">
           <button type="button" data-lang="de" aria-pressed="true">DE</button>
           <button type="button" data-lang="en" aria-pressed="false">EN</button>
         </div>
@@ -31,67 +31,75 @@
   </header>
 
   <div class="sunset-banner" role="alert" data-t="sunsetBannerHtml"></div>
+  <p class="hint infobox" data-t="androidAppHtml"></p>
 
   <!-- shown only when the browser has no Web Bluetooth -->
   <p class="warn" id="platform-note" data-t="noWebBt" hidden></p>
 
-  <!-- (b) intro (collapsible) --------------------------------------------- -->
-  <details class="card" id="sect-intro" data-sect="intro">
-    <summary><h2 data-t="introTitle"></h2><span class="chev">&#9654;</span></summary>
-    <div class="sect-body">
-      <p class="hint" data-t="introLive"></p>
-      <p class="hint"><span data-t="introGuide"></span> <a href="#" id="intro-guide-link" data-doc="GUIDE" data-t="footGuide"></a></p>
-      <div class="warn">
-        <p data-t="introDisclaimer"></p>
-        <p data-t="introWarningHtml"></p>
-        <p><a href="#" id="intro-disclaimer-link" data-t="introDisclaimerLink"></a></p>
-      </div>
-      <p class="browser-req" data-t="appleOnlyHtml"></p>
+  <!-- intro (always visible) ---------------------------------------------- -->
+  <div class="card">
+    <h2 data-t="introTitle"></h2>
+    <p class="hint" data-t="introLive"></p>
+    <p class="hint"><span data-t="introGuide"></span> <a href="#" id="intro-guide-link" data-doc="GUIDE" data-t="footGuide"></a></p>
+    <p class="warn" data-t="expWarn"></p>
+    <p class="hint" data-t="ownDevice"></p>
+  </div>
+
+  <!-- connection (always visible) ----------------------------------------- -->
+  <div class="card">
+    <h2 data-t="connTitle"></h2>
+    <div class="remembered" id="remembered-wrap">
+      <label data-t="rememberedTitle"></label>
+      <div id="remembered-list"></div>
+      <p class="hint" id="remembered-empty" data-t="rememberedEmpty"></p>
     </div>
-  </details>
-
-  <!-- (c) connection (collapsible, always visible) ------------------------ -->
-  <details class="card" id="sect-conn" data-sect="conn">
-    <summary><h2 data-t="connTitle"></h2><span class="chev">&#9654;</span></summary>
-    <div class="sect-body" id="conn-body">
-      <div class="remembered" id="remembered-wrap">
-        <label data-t="rememberedTitle"></label>
-        <div id="remembered-list"></div>
-        <p class="hint" id="remembered-empty" data-t="rememberedEmpty"></p>
-      </div>
-      <p class="hint" data-t="reconnectHint"></p>
-      <hr class="sep">
-      <div class="set-row">
-        <label data-t="filterLabel"></label>
-        <select id="model-filter">
-          <option value="all" data-t="filterAll"></option>
-          <option value="tested" data-t="filterTested"></option>
-          <option value="untested" data-t="filterUntested"></option>
-        </select>
-      </div>
-      <div class="set-row">
-        <label data-t="modelLabel"></label>
-        <select id="model-in"></select>
-      </div>
-      <p class="hint" data-t="modelHint"></p>
-      <div class="set-row">
-        <label data-t="pinLabel"></label>
-        <input id="pin-in" type="text" maxlength="8" inputmode="numeric" autocomplete="off" placeholder="888888">
-      </div>
-      <p class="hint" data-t="pinHint"></p>
-      <div class="btns">
-        <button class="primary span2" id="btn-conn" data-t="connectBtn"></button>
-      </div>
-      <p class="hint" id="devinfo"></p>
+    <p class="hint" data-t="reconnectHint"></p>
+    <hr class="sep">
+    <div class="set-row">
+      <label data-t="filterLabel"></label>
+      <select id="model-filter">
+        <option value="all" data-t="filterAll"></option>
+        <option value="tested" data-t="filterTested"></option>
+        <option value="untested" data-t="filterUntested"></option>
+      </select>
     </div>
-  </details>
+    <div class="set-row">
+      <label data-t="modelLabel"></label>
+      <select id="model-in"></select>
+    </div>
+    <p class="hint" data-t="modelHint"></p>
+    <div class="set-row">
+      <label data-t="pinLabel"></label>
+      <input id="pin-in" type="text" maxlength="8" inputmode="numeric" autocomplete="off" placeholder="888888">
+    </div>
+    <p class="hint" data-t="pinHint"></p>
+    <div class="btns">
+      <button class="primary span2" id="btn-conn" data-t="connectBtn"></button>
+    </div>
+    <p class="hint" id="devinfo"></p>
+  </div>
 
-  <!-- interactive UI ------------------------------------------------------ -->
-  <div id="interactive-ui">
+  <!-- live telemetry (hidden until connected) ----------------------------- -->
+  <div class="card" id="live-card" hidden>
+    <h2 data-t="liveTitle"></h2>
+    <div class="grid" id="tiles-grid"></div>
+    <p class="hint" id="live-hint" data-t="liveHint"></p>
+    <p class="hint" id="tiles-empty" data-t="liveEmpty"></p>
+    <div class="tile-manager" id="tile-manager"></div>
+  </div>
 
-    <!-- (d) lock / unlock (collapsible) ---------------------------------- -->
-    <details class="card" id="sect-lock" data-sect="lock">
-      <summary><h2 data-t="lockTitle"></h2><span class="chev">&#9654;</span></summary>
+  <!-- battery telemetry (hidden until connected) -------------------------- -->
+  <div class="card" id="batt-card" hidden>
+    <h2 data-t="battTitle"></h2>
+    <p class="hint" data-t="battHint"></p>
+  </div>
+
+  <!-- settings (hidden until connected) ----------------------------------- -->
+  <div class="card" id="more-card" hidden>
+    <h2 data-t="setTitle"></h2>
+
+    <h3 class="set-group" data-t="setgrpSpeed"></h3>
+    <div id="sect-lock">
       <div class="sect-body">
         <p class="danger" id="untested-warn" hidden></p>
         <div class="btns">
@@ -110,38 +118,21 @@
         </div>
         <p class="hint" data-t="speedValuesHint"></p>
       </div>
-    </details>
-
-    <!-- (e) live tiles --------------------------------------------------- -->
-    <div class="card">
-      <h2 data-t="liveTitle"></h2>
-      <div class="grid" id="tiles-grid"></div>
-      <p class="hint" id="live-hint" data-t="liveHint"></p>
-      <p class="hint" id="tiles-empty" data-t="liveEmpty"></p>
-      <div class="tile-manager" id="tile-manager"></div>
     </div>
 
-    <!-- (f) settings (collapsible) --------------------------------------- -->
-    <details class="card" id="sect-settings" data-sect="settings">
-      <summary><h2 data-t="setTitle"></h2><span class="chev">&#9654;</span></summary>
-      <div class="sect-body">
-        <div id="settings-body"></div>
-        <p class="hint" id="settings-empty" data-t="setEmpty"></p>
-      </div>
-    </details>
+    <h3 class="set-group" data-t="setgrpGeneral"></h3>
+    <div id="settings-body"></div>
+    <p class="hint" id="settings-empty" data-t="setEmpty"></p>
+  </div>
 
-    <!-- (g) advanced settings (collapsible; empty until connected) -------- -->
-    <details class="card" id="sect-advanced" data-sect="advanced">
-      <summary><h2 data-t="advTitle"></h2><span class="chev">&#9654;</span></summary>
-      <div class="sect-body">
-        <div id="advanced-body"></div>
-        <p class="hint" id="advanced-empty" data-t="advEmpty"></p>
-      </div>
-    </details>
+  <!-- advanced settings (hidden until connected) -------------------------- -->
+  <div class="card" id="raw-card" hidden>
+    <h2 data-t="advTitle"></h2>
+    <div id="advanced-body"></div>
+    <p class="hint" id="advanced-empty" data-t="advEmpty"></p>
+  </div>
 
-  </div><!-- /#interactive-ui -->
-
-  <!-- (h) log ------------------------------------------------------------- -->
+  <!-- log ----------------------------------------------------------------- -->
   <div class="card">
     <h2 data-t="logTitle"></h2>
     <div class="log-opts">
@@ -165,18 +156,18 @@
     <p class="hint"><span class="log-tx" data-t="logTxLegend"></span>, <span class="log-rx" data-t="logRxLegend"></span></p>
   </div>
 
-  <!-- (i) footer ---------------------------------------------------------- -->
+  <!-- footer (canonical) -------------------------------------------------- -->
   <footer class="foot">
     <span class="foot-links">
-      <a href="#" id="link-guide" data-doc="GUIDE" data-t="footGuide"></a>
-      <a href="#" id="link-readme" data-doc="README" data-t="footReadme"></a>
-      <a href="#" id="link-changelog" data-doc="CHANGELOG" data-t="footChangelog"></a>
-      <a href="#" id="link-disclaimer" data-t="footDisclaimer"></a>
-      <a href="#" id="link-license" data-doc="LICENSE" data-t="footLicense"></a>
-      <a href="#" id="link-privacy" data-doc="PRIVACY" data-t="footPrivacy"></a>
-      <a href="#" id="link-trademarks" data-doc="TRADEMARKS" data-t="footTrademarks"></a>
+      <a id="link-guide" href="GUIDE.de.md" data-doc="GUIDE" data-t="footGuide"></a>
+      <a href="https://github.com/Laufbursche42/tb-unlock" target="_blank" rel="noopener" data-t="footSource"></a>
+      <a id="link-readme" href="README.md" data-doc="README" data-t="footReadme"></a>
+      <a id="link-disclaimer" href="#" data-t="footDisclaimer"></a>
+      <a id="link-license" href="LICENSE.de.md" data-doc="LICENSE" data-t="footLicense"></a>
+      <a id="link-privacy" href="PRIVACY.de.md" data-doc="PRIVACY" data-t="footPrivacy"></a>
+      <a id="link-trademarks" href="TRADEMARKS.de.md" data-doc="TRADEMARKS" data-t="footTrademarks"></a>
     </span>
-    <span class="ver"><span id="build-ver"></span> - <a id="link-report" href="https://github.com/Laufbursche42/Laufbursche42/issues" target="_blank" rel="noopener" data-t="footReport"></a></span>
+    <span class="foot-links"><span class="ver" id="build-ver"></span><a href="https://github.com/Laufbursche42/Laufbursche42/issues" target="_blank" rel="noopener" data-t="footIssue"></a></span>
     <a class="foot-copy" href="https://laufbursche42.github.io/Laufbursche42/" target="_blank" rel="noopener">Copyright (c) 2026 Laufbursche</a>
   </footer>
 </div>
@@ -221,6 +212,6 @@
 <script defer src="drivers/base.js?v=26"></script>
 <script defer src="drivers/zyd.js?v=26"></script>
 <script defer src="i18n.js?v=26"></script>
-<script defer src="app.js?v=26"></script>
+<script defer src="app.js?v=27"></script>
 </body>
 </html>
