@@ -5,7 +5,7 @@
 // to lb-tool-web; nothing on the wire is invented here.
 // Build version - the pre-commit hook bumps it and syncs index.html ?v=; also shown in the footer.
 // Kept at column zero so the hook's `^const BUILD = 'vN'` match finds it.
-const BUILD = 'v27';
+const BUILD = 'v28';
 
 (function () {
 
@@ -1055,6 +1055,7 @@ const BUILD = 'v27';
       pubCb.addEventListener('change', function () {
         state.publicLog = pubCb.checked;
         LS.set(SK.publicLog, pubCb.checked ? '1' : '0');
+        log('public-log: ' + (pubCb.checked ? 'on (anonymizing device name/id)' : 'off'));
         renderLog();
       });
     }
@@ -1066,6 +1067,7 @@ const BUILD = 'v27';
         state.diag = diagCb.checked;
         if (state.driver && state.driver.setDiag) state.driver.setDiag(state.diag);
         log(state.diag ? t('diagOn') : t('diagOff'), 'log-rx');
+        log('diag-log: ' + (diagCb.checked ? 'on' : 'off'));
       });
     }
 
