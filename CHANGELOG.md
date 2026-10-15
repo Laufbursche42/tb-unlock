@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-15
+- Report button: unified prefilled-issue template (scooter, page, version and the debug log auto-attached), real umlauts, dropped the old column checklist.
+
 ## 2026-09-25
 - Standard rebuild: all telemetry/settings/advanced, full log; functional lock/unlock for Hilde 1 and Hilde 2 (documented ZYD path).
 - Security headers (_headers: HSTS/CSP, robots findable) and a functional pre-commit hook (scan-ok allowlist).
