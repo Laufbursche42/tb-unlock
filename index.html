@@ -10,7 +10,7 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
-<link rel="stylesheet" href="styles.css?v=7">
+<link rel="stylesheet" href="styles.css?v=8">
 <!-- Cloudflare Web Analytics --><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "1f2a3915448b4b68b4380423f2be4b09"}'></script><!-- scan-ok: Cloudflare Web Analytics beacon (token starts 1f2a39 ends 4b09); cookieless aggregate page metrics, see PRIVACY -->
 </head>
 <body>
@@ -18,7 +18,7 @@
 
   <!-- header (canonical) -------------------------------------------------- -->
   <header>
-    <h1>Laufbursche <span data-t="brandSub"></span></h1>
+    <h1>Laufbursche <span data-t="brandSub">Trittbrett Tool</span></h1>
     <div class="head-right">
       <span class="status" id="status" data-state="disconnected">disconnected</span>
       <div class="head-tools">
@@ -31,144 +31,144 @@
     </div>
   </header>
 
-  <div class="sunset-banner" role="alert" data-t="sunsetBannerHtml"></div>
-  <p class="hint infobox" data-t="androidAppHtml"></p>
+  <div class="sunset-banner" role="alert" data-t="sunsetBannerHtml"><b>Dieses Tool zieht um.</b> Dieses Repo wird <b>nicht mehr weiterentwickelt</b> - bitte wechsle zum neuen Tool: <a href="https://lb-tool-web.pages.dev/" target="_blank" rel="noopener">lb-tool-web.pages.dev</a>. Probleme beim Wechsel? Öffne ein <a href="https://github.com/Laufbursche42/Laufbursche42/issues/new" target="_blank" rel="noopener">Issue auf GitHub</a> oder schick eine <a href="https://www.escooter-stammtisch.de/index.php?user/6497-laufbursche/" target="_blank" rel="noopener">PN im eScooter-Stammtisch</a>.</div>
+  <p class="hint infobox" data-t="androidAppHtml">Android-Nutzer: Es gibt eine native Android-App, die dasselbe ohne Browser macht - <a href="https://github.com/Laufbursche42/tb-lb-edition" target="_blank" rel="noopener">tb-lb-edition</a>. Sie umgeht die Web-Bluetooth-Hürden (manche Handys, etwa Samsung mit Auto Blocker, blockieren die Browser-Verbindung). Diese Web-Seite ist der Weg für iOS.</p>
 
   <!-- shown only when the browser has no Web Bluetooth -->
-  <p class="warn" id="platform-note" data-t="noWebBt" hidden></p>
+  <p class="warn" id="platform-note" data-t="noWebBt" hidden>Dieser Browser unterstützt Web Bluetooth nicht. Bitte Chrome, Edge oder Bluefy verwenden.</p>
 
   <!-- intro (always visible) ---------------------------------------------- -->
   <div class="card">
-    <h2 data-t="introTitle"></h2>
-    <p class="hint" data-t="introLive"></p>
-    <p class="hint"><span data-t="introGuide"></span> <a href="#" id="intro-guide-link" data-doc="GUIDE" data-t="footGuide"></a></p>
-    <p class="warn" data-t="expWarn"></p>
-    <p class="hint" data-t="ownDevice"></p>
+    <h2 data-t="introTitle">So fängst du an</h2>
+    <p class="hint" data-t="introLive">Live über Web Bluetooth mit deinem Trittbrett-E-Scooter reden. Läuft in Bluefy (iOS) oder Chrome bzw. Edge (Android/Desktop). Der Bluetooth-Teil verlässt dein Gerät nicht, es gibt kein Konto und keinen Server.</p>
+    <p class="hint"><span data-t="introGuide">Neu hier? Die Anleitung erklärt jeden Schritt.</span> <a href="#" id="intro-guide-link" data-doc="GUIDE" data-t="footGuide">Anleitung</a></p>
+    <p class="warn" data-t="expWarn">Machbarkeitsstudie: Diese Seite zeigt, was das Bluetooth-Protokoll eines Trittbrett-E-Scooters technisch möglich macht. Sie ist kein fertiges Produkt. Es gibt keine Gewährleistung. Alles was du hier tust, tust du auf eigenes Risiko. <a href="#DISCLAIMER">Haftungsausschluss lesen</a>.</p>
+    <p class="hint" data-t="ownDevice">Nur am eigenen Fahrzeug auf privatem Gelände. Das Anheben der Höchstgeschwindigkeit hebt die Drossel auf, die ABE erlischt und der Betrieb auf öffentlichen Wegen ist dann nicht erlaubt.</p>
   </div>
 
   <!-- connection (always visible) ----------------------------------------- -->
   <div class="card">
-    <h2 data-t="connTitle"></h2>
+    <h2 data-t="connTitle">Verbindung</h2>
     <div class="remembered" id="remembered-wrap">
-      <label data-t="rememberedTitle"></label>
+      <label data-t="rememberedTitle">Gemerkte Scooter</label>
       <div id="remembered-list"></div>
-      <p class="hint" id="remembered-empty" data-t="rememberedEmpty"></p>
+      <p class="hint" id="remembered-empty" data-t="rememberedEmpty">Noch keine gemerkten Scooter.</p>
     </div>
-    <p class="hint" data-t="reconnectHint"></p>
+    <p class="hint" data-t="reconnectHint">Ein Tipp auf einen gemerkten Scooter stellt die Verbindung ohne erneutes Koppeln her.</p>
     <hr class="sep">
     <div class="set-row">
-      <label data-t="filterLabel"></label>
+      <label data-t="filterLabel">Filter</label>
       <select id="model-filter">
-        <option value="all" data-t="filterAll"></option>
-        <option value="tested" data-t="filterTested"></option>
-        <option value="untested" data-t="filterUntested"></option>
+        <option value="all" data-t="filterAll">alle</option>
+        <option value="tested" data-t="filterTested">getestet</option>
+        <option value="untested" data-t="filterUntested">ungetestet</option>
       </select>
     </div>
     <div class="set-row">
-      <label data-t="modelLabel"></label>
+      <label data-t="modelLabel">Modell</label>
       <select id="model-in"></select>
     </div>
-    <p class="hint" data-t="modelHint"></p>
+    <p class="hint" data-t="modelHint">Die Auto-Erkennung wählt das Modell am Gerätenamen. Für Hilde 1 oder Hilde 2 das Modell direkt wählen (Filter "getestet").</p>
     <div class="set-row">
-      <label data-t="pinLabel"></label>
+      <label data-t="pinLabel">Modul-PIN (optional)</label>
       <input id="pin-in" type="text" maxlength="8" inputmode="numeric" autocomplete="off" placeholder="888888">
     </div>
-    <p class="hint" data-t="pinHint"></p>
+    <p class="hint" data-t="pinHint">Nur ausfüllen, falls dein Roller die Verbindung ohne PIN ablehnt. Standard der App ist 888888. Leer lassen sendet keine PIN.</p>
     <div class="btns">
-      <button class="primary span2" id="btn-conn" data-t="connectBtn"></button>
+      <button class="primary span2" id="btn-conn" data-t="connectBtn">Verbinden</button>
     </div>
     <p class="hint" id="devinfo"></p>
   </div>
 
   <!-- live telemetry (hidden until connected) ----------------------------- -->
   <div class="card" id="live-card" hidden>
-    <h2 data-t="liveTitle"></h2>
+    <h2 data-t="liveTitle">Live-Werte</h2>
     <div class="grid" id="tiles-grid"></div>
-    <p class="hint" id="live-hint" data-t="liveHint"></p>
-    <p class="hint" id="tiles-empty" data-t="liveEmpty"></p>
+    <p class="hint" id="live-hint" data-t="liveHint">Kacheln über das X ausblenden und per Drag & Drop neu anordnen.</p>
+    <p class="hint" id="tiles-empty" data-t="liveEmpty">Live-Werte erscheinen, sobald der verbundene Scooter sie meldet.</p>
     <div class="tile-manager" id="tile-manager"></div>
   </div>
 
   <!-- battery telemetry (hidden until connected) -------------------------- -->
   <div class="card" id="batt-card" hidden>
-    <h2 data-t="battTitle"></h2>
-    <p class="hint" data-t="battHint"></p>
+    <h2 data-t="battTitle">Akku-Telemetrie</h2>
+    <p class="hint" data-t="battHint">Akku-Werte wie Ladestand, Spannung und Temperatur erscheinen bei den Live-Werten, sobald der verbundene Scooter sie meldet.</p>
   </div>
 
   <!-- settings (hidden until connected) ----------------------------------- -->
   <div class="card" id="more-card" hidden>
-    <h2 data-t="setTitle"></h2>
+    <h2 data-t="setTitle">Weitere Einstellungen</h2>
 
-    <h3 class="set-group" data-t="setgrpSpeed"></h3>
+    <h3 class="set-group" data-t="setgrpSpeed">Tempo und Freischaltung</h3>
     <div id="sect-lock">
       <div class="sect-body">
         <p class="danger" id="untested-warn" hidden></p>
         <div class="btns">
-          <button class="primary" id="btn-drossel-out" data-t="drosselOut" disabled></button>
-          <button class="primary" id="btn-drossel-in" data-t="drosselIn" disabled></button>
+          <button class="primary" id="btn-drossel-out" data-t="drosselOut" disabled>Drossel raus</button>
+          <button class="primary" id="btn-drossel-in" data-t="drosselIn" disabled>Drossel rein</button>
         </div>
         <div class="speed-cols">
           <div class="set-row">
-            <label data-t="lblOpen"></label>
+            <label data-t="lblOpen">Offen (km/h)</label>
             <input id="speed-open" type="number" step="0.1" min="1" max="60" value="30" disabled>
           </div>
           <div class="set-row">
-            <label data-t="lblLegal"></label>
+            <label data-t="lblLegal">Legal (km/h)</label>
             <input id="speed-legal" type="number" step="0.1" min="1" max="60" value="22" disabled>
           </div>
         </div>
-        <p class="hint" data-t="speedValuesHint"></p>
+        <p class="hint" data-t="speedValuesHint">Offen hebt die Drossel an. Legal setzt sie auf den zugelassenen Wert (eKFV) zurück. Register 0x20 hat keine Rückmeldung, der Knopfzustand ist nur ein lokaler Merker.</p>
       </div>
     </div>
 
-    <h3 class="set-group" data-t="setgrpGeneral"></h3>
+    <h3 class="set-group" data-t="setgrpGeneral">Allgemein</h3>
     <div id="settings-body"></div>
-    <p class="hint" id="settings-empty" data-t="setEmpty"></p>
+    <p class="hint" id="settings-empty" data-t="setEmpty">Einstellungen erscheinen nach dem Verbinden.</p>
   </div>
 
   <!-- advanced settings (hidden until connected) -------------------------- -->
   <div class="card" id="raw-card" hidden>
-    <h2 data-t="advTitle"></h2>
+    <h2 data-t="advTitle">Erweiterte Einstellungen (Engine-Ebene)</h2>
     <div id="advanced-body"></div>
-    <p class="hint" id="advanced-empty" data-t="advEmpty"></p>
+    <p class="hint" id="advanced-empty" data-t="advEmpty">Erweiterte Einstellungen erscheinen nach dem Verbinden mit einem Scooter.</p>
   </div>
 
   <!-- log ----------------------------------------------------------------- -->
   <div class="card">
-    <h2 data-t="logTitle"></h2>
+    <h2 data-t="logTitle">Protokoll-Log</h2>
     <div class="log-opts">
       <div class="log-opt">
-        <span data-t="publicLogLabel"></span>
+        <span data-t="publicLogLabel">Öffentliches Log (Gerätename/ID anonymisieren)</span>
         <input type="checkbox" id="public-log" checked>
         <button type="button" class="help-btn" data-help="publiclog" aria-label="?">?</button>
       </div>
       <div class="log-opt">
-        <span data-t="diagLogLabel"></span>
+        <span data-t="diagLogLabel">Diagnose-Log</span>
         <input type="checkbox" id="diag-log">
         <button type="button" class="help-btn" data-help="diaglog" aria-label="?">?</button>
       </div>
     </div>
     <div class="btns">
-      <button type="button" id="btn-copy-log" data-t="btnCopyLog"></button>
-      <button type="button" id="btn-clear-log" data-t="btnClearLog"></button>
-      <button type="button" id="btn-save-log" class="span2" data-t="btnSaveLog"></button>
+      <button type="button" id="btn-copy-log" data-t="btnCopyLog">Kopieren</button>
+      <button type="button" id="btn-clear-log" data-t="btnClearLog">Leeren</button>
+      <button type="button" id="btn-save-log" class="span2" data-t="btnSaveLog">Speichern</button>
     </div>
     <pre id="log"></pre>
-    <p class="hint"><span class="log-tx" data-t="logTxLegend"></span>, <span class="log-rx" data-t="logRxLegend"></span></p>
+    <p class="hint"><span class="log-tx" data-t="logTxLegend">gesendet</span>, <span class="log-rx" data-t="logRxLegend">empfangen</span></p>
   </div>
 
   <!-- footer (canonical) -------------------------------------------------- -->
   <footer class="foot">
     <span class="foot-links">
-      <a id="link-guide" href="GUIDE.de.md" data-doc="GUIDE" data-t="footGuide"></a>
-      <a href="https://github.com/Laufbursche42/tb-unlock" target="_blank" rel="noopener" data-t="footSource"></a>
-      <a id="link-readme" href="README.md" data-doc="README" data-t="footReadme"></a>
-      <a id="link-disclaimer" href="#" data-t="footDisclaimer"></a>
-      <a id="link-license" href="LICENSE.de.md" data-doc="LICENSE" data-t="footLicense"></a>
-      <a id="link-privacy" href="PRIVACY.de.md" data-doc="PRIVACY" data-t="footPrivacy"></a>
-      <a id="link-trademarks" href="TRADEMARKS.de.md" data-doc="TRADEMARKS" data-t="footTrademarks"></a>
+      <a id="link-guide" href="GUIDE.de.md" data-doc="GUIDE" data-t="footGuide">Anleitung</a>
+      <a href="https://github.com/Laufbursche42/tb-unlock" target="_blank" rel="noopener" data-t="footSource">Quellcode</a>
+      <a id="link-readme" href="README.md" data-doc="README" data-t="footReadme">Readme</a>
+      <a id="link-disclaimer" href="#" data-t="footDisclaimer">Haftungsausschluss</a>
+      <a id="link-license" href="LICENSE.de.md" data-doc="LICENSE" data-t="footLicense">Lizenz</a>
+      <a id="link-privacy" href="PRIVACY.de.md" data-doc="PRIVACY" data-t="footPrivacy">Datenschutz</a>
+      <a id="link-trademarks" href="TRADEMARKS.de.md" data-doc="TRADEMARKS" data-t="footTrademarks">Marken</a>
     </span>
-    <span class="foot-links"><span class="ver" id="build-ver"></span><a href="https://github.com/Laufbursche42/Laufbursche42/issues" target="_blank" rel="noopener" data-t="footIssue"></a></span>
+    <span class="foot-links"><span class="ver" id="build-ver"></span><a href="https://github.com/Laufbursche42/Laufbursche42/issues" target="_blank" rel="noopener" data-t="footIssue">Fehler melden</a></span>
     <a class="foot-copy" href="https://laufbursche42.github.io/Laufbursche42/" target="_blank" rel="noopener">Copyright (c) 2026 Laufbursche</a>
   </footer>
 </div>
@@ -181,20 +181,20 @@
   </div>
   <div class="doc-body" id="doc-body"></div>
   <div class="doc-foot">
-    <button type="button" id="doc-close" data-t="docClose"></button>
+    <button type="button" id="doc-close" data-t="docClose">Schließen</button>
   </div>
 </dialog>
 
 <!-- confirm modal for risky writes -->
 <dialog id="confirm" aria-labelledby="confirm-title">
   <div class="doc-head">
-    <h3 id="confirm-title" data-t="confirmTitle"></h3>
+    <h3 id="confirm-title" data-t="confirmTitle">Bestätigung erforderlich</h3>
     <button type="button" class="doc-x" id="confirm-x">&times;</button>
   </div>
   <div class="doc-body"><p id="confirm-body"></p></div>
   <div class="doc-foot">
-    <button type="button" id="confirm-cancel" data-t="confirmCancel"></button>
-    <button type="button" id="confirm-ok" class="danger" data-t="confirmYes"></button>
+    <button type="button" id="confirm-cancel" data-t="confirmCancel">Abbrechen</button>
+    <button type="button" id="confirm-ok" class="danger" data-t="confirmYes">Senden</button>
   </div>
 </dialog>
 
@@ -206,7 +206,7 @@
   </div>
   <div class="doc-body" id="help-body"></div>
   <div class="doc-foot">
-    <button type="button" id="help-close" data-t="docClose"></button>
+    <button type="button" id="help-close" data-t="docClose">Schließen</button>
   </div>
 </dialog>
 
